@@ -5,8 +5,8 @@ import Constants from "../constants";
 import { Book } from "../types";
 import { getStorage, ref, getDownloadURL } from 'firebase/storage';
 
-const ImageCard = ({ index, book, token }) => {
-    const { setSelectedAction, setSelectedSummary } = useContext(DashboardContext)
+const ImageCard = ({ book, onRead }) => {
+    const { selectedAction, setSelectedAction, setSummary, summary } = useContext(DashboardContext)
     const [imageUrl, setImageUrl] = useState('');
 
     useEffect(() => {
@@ -24,8 +24,17 @@ const ImageCard = ({ index, book, token }) => {
     }, []);
 
     const handleContentChange = () => {
+
+        if (selectedAction === Constants.SIDEBAR_TODAY) {
+            onRead(true)
+            console.log("reading")
+        } else {
+            onRead(false)
+            console.log("library reading")
+        }
+
+        setSummary(book)
         setSelectedAction(Constants.SUMMARY_CONTENT)
-        setSelectedSummary(index)
     }
 
     return (
@@ -72,7 +81,7 @@ const ImageCard = ({ index, book, token }) => {
 
                     <View gridArea="footer">
                         <Button variant="secondary" onPress={handleContentChange}>
-                            Read
+                            {book.id === summary?.id ? "Continue reading" : "Read"}
                         </Button>
                     </View>
                 </Grid>

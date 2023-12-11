@@ -6,6 +6,7 @@ import { getAuth, User } from "firebase/auth"
 import RegisterPage from "./pages/register"
 import Dashboard from "./pages/dashboard"
 import URL from './routes';
+import { ToastContainer } from '@react-spectrum/toast'
 
 function App() {
   const navigate = useNavigate();
@@ -25,6 +26,7 @@ function App() {
   }, []);
   return (
     <Provider theme={defaultTheme} router={{ navigate }} height="100vh">
+      <ToastContainer />
       {loading ?
         <Flex direction="column" height="100vh" justifyContent="center" alignItems="center">
           <ProgressCircle aria-label="Loading…" isIndeterminate size="L" />

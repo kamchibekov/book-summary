@@ -8,8 +8,9 @@ import MultiPageContent from "../components/MultiPageContent";
 import Constants from "../constants";
 import { DashboardContext } from '../contexts'
 import { DashboardContextInterface } from "../interface/DashboardContextInterface";
-import { getUnfinishedBooks } from '../firease/booksApi'
+import { fetchBook, setBookFinished, getLibraryBooks } from '../firease/booksApi'
 import { Book } from "../types";
+import { ToastQueue } from "@react-spectrum/toast";
 
 const Dashboard = ({ user }) => {
   // Check if the user is authenticated
@@ -18,29 +19,65 @@ const Dashboard = ({ user }) => {
     return <Navigate to={URL.Register} />;
   }
   const [selectedAction, setSelectedAction] = useState<string>(Constants.SIDEBAR_TODAY);
-  const [selectedSummary, setSelectedSummary] = useState<null | number>(null);
-  const [books, setBooks] = useState<Book[]>([]);
+  const [summary, setSummary] = useState<null | Book>(null);
+  const [book, setBook] = useState<null | Book>(null);
+  const [libraryBooks, setLibraryBooks] = useState<Book[]>([]);
+  const [hasFetchedLibraryBooks, setHasFetchedLibraryBooks] = useState<boolean>(false);
+  const [isReading, setIsReading] = useState<boolean>(false);
 
   useEffect(() => {
     const fetchUnfinishedBooks = async () => {
-      const books = await getUnfinishedBooks(user);
-      setBooks(books);
+      const fetchedBook = await fetchBook(user);
+      setBook(fetchedBook);
     };
 
     fetchUnfinishedBooks();
   }, [user]);
 
-  console.log("unfinishedBooks:", books)
-  console.log("user:", user)
+  useEffect(() => {
+    const fetchLibraryBooks = async () => {
+      const libraryBooksData = await getLibraryBooks(user);
+      setLibraryBooks(libraryBooksData);
+      setHasFetchedLibraryBooks(true);
+    };
+
+    if (selectedAction === Constants.SIDEBAR_LIBRARY && !hasFetchedLibraryBooks) {
+      console.log("Library fetched")
+      fetchLibraryBooks();
+    }
+
+  }, [user, selectedAction]);
+
+  const moveBookToLibrary = async () => {
+
+    if (book === null || isReading === false) {
+      console.log("Not reading")
+      return
+    }
+
+    setIsReading(false)
+
+    ToastQueue.positive('Well done! Summary moved to library.', { timeout: 2000 })
+    
+    const nextBook = await setBookFinished(user, book);
+
+    // Remove the book from the 'books' array
+    // Set next book
+    setBook(nextBook)
+
+    // Add the book to the 'libraryBooks' array
+    const updatedLibraryBooks = [...libraryBooks, book];
+
+    // Update state
+    // setBooks(updatedBooks);
+    setLibraryBooks(updatedLibraryBooks);
+
+  };
+
 
   const memoedContents = useMemo(() => {
 
-    let summary = <></>
-
-    if (selectedSummary !== null) {
-      const data = JSON.parse(books[selectedSummary]['summary'])
-      summary = <MultiPageContent content={data} />
-    }
+    // console.log("memo invoke") handle tis case later
 
     return {
       [Constants.SIDEBAR_TODAY]: <Grid
@@ -48,22 +85,28 @@ const Dashboard = ({ user }) => {
         height="100%"
         gap="size-100"
       >
-        {books.map((book, index) => (
-          <ImageCard key={index} index={index} book={book} token={user.getIdTokenResult()} />
+        {book !== null ? <ImageCard book={book} onRead={setIsReading} /> : <></>}
+      </Grid>,
+      [Constants.SIDEBAR_LIBRARY]: <Grid
+        UNSAFE_style={{ overflow: "auto" }}
+        height="100%"
+        gap="size-100"
+      >
+        {libraryBooks.map((book, index) => (
+          <ImageCard key={index} book={book} onRead={setIsReading} />
         ))}
       </Grid>,
-      [Constants.SIDEBAR_LIBRARY]: <Text>My Library</Text>,
       [Constants.SIDEBAR_HIGHLIGHTS]: <Text>Highlights</Text>,
-      [Constants.SUMMARY_CONTENT]: summary
+      [Constants.SUMMARY_CONTENT]: <MultiPageContent setFinishedCallback={moveBookToLibrary} />
     };
-  }, [selectedSummary, books]);
+  }, [summary, libraryBooks, book]);
 
 
   const contextValue: DashboardContextInterface = {
     selectedAction,
     setSelectedAction,
-    selectedSummary,
-    setSelectedSummary
+    summary,
+    setSummary
   }
 
   return (

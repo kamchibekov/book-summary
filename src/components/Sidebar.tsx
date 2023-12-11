@@ -3,7 +3,7 @@ import { Flex, Button, View, ButtonGroup } from '@adobe/react-spectrum';
 import ChevronLeft from "@spectrum-icons/workflow/ChevronLeft";
 import ChevronRight from "@spectrum-icons/workflow/ChevronRight";
 import Bookmark from "@spectrum-icons/workflow/Bookmark";
-import BookmarkSingleOutline from "@spectrum-icons/workflow/BookmarkSingleOutline";
+import BookmarkSingle from "@spectrum-icons/workflow/BookmarkSingle";
 import AutomatedSegment from "@spectrum-icons/workflow/AutomatedSegment";
 import Profile from './profile'
 import Strings from "../strings";
@@ -42,21 +42,21 @@ const Sidebar = ({ user }) => {
                             onPress={() => handleAction(Constants.SIDEBAR_TODAY)}
                             isDisabled={selectedAction === Constants.SIDEBAR_TODAY}
                         >
-                            <AutomatedSegment /> {isSidebarOpen ? Strings.todaysBlink : ''}
+                            <AutomatedSegment /> &nbsp;{isSidebarOpen ? Strings.todaysBlink : ''}
                         </Button>
                         <Button
                             variant="secondary"
                             onPress={() => handleAction(Constants.SIDEBAR_LIBRARY)}
                             isDisabled={selectedAction === Constants.SIDEBAR_LIBRARY}
                         >
-                            <Bookmark /> {isSidebarOpen ? Strings.library : ''}
+                            <Bookmark /> &nbsp;{isSidebarOpen ? Strings.library : ''}
                         </Button>
                         <Button
                             variant="secondary"
                             onPress={() => handleAction(Constants.SIDEBAR_HIGHLIGHTS)}
                             isDisabled={selectedAction === Constants.SIDEBAR_HIGHLIGHTS}
                         >
-                            <BookmarkSingleOutline /> {isSidebarOpen ? Strings.highlights : ''}
+                            <BookmarkSingle /> &nbsp;{isSidebarOpen ? Strings.highlights : ''}
                         </Button>
                     </ButtonGroup>
                     <Profile user={user} isSidebarOpen={isSidebarOpen} />
