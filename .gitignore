@@ -132,3 +132,4 @@ dist
 .DS_Store
 
 configs/
+public/js/app.js
