@@ -8,4 +8,5 @@ export const DashboardContext = createContext<DashboardContextInterface>({
   setSelectedAction: (action: string) => {},
   summary: null,
   setSummary: (book: Book) => {},
+  user: null,
 });

@@ -7,3 +7,12 @@ export interface Book {
   raw_text: string;
   summary: string;
 }
+
+export interface Highlight {
+  id?: string;
+  text: string;
+  book_id: string;
+  book_title: string;
+  book_author: string;
+  book_image_url: string;
+}

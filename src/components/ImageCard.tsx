@@ -46,11 +46,11 @@ const ImageCard = ({ book, onRead }) => {
 
             <Grid
                 areas={[
-                    'sidebar content',
+                    'image content',
                 ]}
                 columns={['1fr', '3fr']}
                 gap="size-100">
-                <View backgroundColor="blue-600" gridArea="sidebar">
+                <View backgroundColor="blue-600" gridArea="image">
                     <Image
                         src={imageUrl}
                         alt={book.title}

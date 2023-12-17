@@ -1,22 +1,28 @@
-import React, { useState, useContext, useEffect, useRef } from "react";
-import { Button, View, Grid, Heading, Text, Flex } from '@adobe/react-spectrum';
+import React, { useState, useContext, useEffect, useRef, createContext } from "react";
+import { Button, View, Grid, Heading, Flex } from '@adobe/react-spectrum';
 import ChevronRight from "@spectrum-icons/workflow/ChevronRight";
 import ChevronLeft from "@spectrum-icons/workflow/ChevronLeft";
 import { DashboardContext } from "../contexts";
+import TextSelection from "./TextSelection";
+import { saveHighlight } from "../firease/highlights.api";
+import { Highlight } from "../types";
 
 const MultiPageContent = ({ setFinishedCallback, initialPage = 0 }) => {
     const { summary } = useContext(DashboardContext)
+    const { user } = useContext(DashboardContext);
+
     if (summary === null) return <></>
 
     const [currentPage, setCurrentPage] = useState(initialPage);
-    const [isToasted, setIsToasted] = useState(false);
     const data = JSON.parse(summary['summary'])
     const currentPageRef = useRef(currentPage);
+    const [selection, setSelection] = useState<Selection | null>(null);
 
     useEffect(() => {
         currentPageRef.current = Math.max(currentPage, currentPageRef.current);
 
     }, [currentPage]);
+
     useEffect(() => {
         // Your component did mount logic here
 
@@ -35,6 +41,25 @@ const MultiPageContent = ({ setFinishedCallback, initialPage = 0 }) => {
         };
     }, []);
 
+    const handleMouseUp = (text: string) => {
+        const selection = window.getSelection();
+        const selected = selection?.toString().trim() || "";
+
+        // Normalize strings by removing whitespace and non-printable characters
+        const normalizedText = text.replace(/\s+/g, ' ').trim();
+        const normalizedSelected = selected.replace(/\s+/g, ' ').trim();
+
+        if (selected && normalizedText.includes(normalizedSelected)) {
+            setSelection(selection);
+        } else {
+            setSelection(null);
+        }
+    };
+
+    const handleSaveHighlight = (highlight: Highlight) => {
+        saveHighlight(user, highlight)
+        setSelection(null)
+    }
 
     const pages = Object.entries(data).map(([key, value]) => <Grid
         columns="1fr"
@@ -42,8 +67,13 @@ const MultiPageContent = ({ setFinishedCallback, initialPage = 0 }) => {
 
     >
         <View padding="size-300" paddingBottom="size-0"><Heading level={3}>{key}</Heading></View>
-        <View padding="size-300" UNSAFE_style={{ fontSize: '1rem' }}>
-            <Text>{value as React.ReactNode}</Text>
+        <View
+            paddingStart="size-300"
+            paddingEnd="size-300"
+            paddingBottom="size-300"
+            UNSAFE_style={{ fontSize: '1rem' }}>
+            <p onMouseUp={() => handleMouseUp(value as string)}>{value as React.ReactNode}</p>
+            {selection && (<TextSelection selection={selection} callback={handleSaveHighlight} />)}
         </View>
     </Grid>
     )
