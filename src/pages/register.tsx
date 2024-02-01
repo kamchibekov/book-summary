@@ -8,11 +8,7 @@ import URL from "../routes"
 
 // import Logo from "../../public/icons/icon-192x192.png"
 
-const RegisterPage = ({ user }) => {
-    if (user) {
-        // Redirect to the login page if not authenticated
-        return <Navigate to={URL.Dashboard} />;
-    }
+const RegisterPage = () => {
 
     return <Flex direction="column" height="100vh" gap="size-100" justifyContent="center" alignItems="center">
         <View

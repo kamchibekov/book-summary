@@ -16,3 +16,11 @@ export interface Highlight {
   book_author: string;
   book_image_url: string;
 }
+
+export interface BookHighlight {
+  book_id: string;
+  book_title: string;
+  book_author: string;
+  book_image_url: string;
+  highlights: { id?: string | undefined; text: string }[];
+}

@@ -11,7 +11,7 @@ import Constants from "../constants";
 import { DashboardContext } from '../contexts'
 
 
-const Sidebar = ({ user }) => {
+const Sidebar = () => {
 
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
     const { selectedAction, setSelectedAction } = useContext(DashboardContext)
@@ -59,7 +59,7 @@ const Sidebar = ({ user }) => {
                             <BookmarkSingle /> &nbsp;{isSidebarOpen ? Strings.highlights : ''}
                         </Button>
                     </ButtonGroup>
-                    <Profile user={user} isSidebarOpen={isSidebarOpen} />
+                    <Profile isSidebarOpen={isSidebarOpen} />
                 </Flex>
             </View>
 

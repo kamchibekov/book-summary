@@ -24,10 +24,9 @@ export const fetchBook = async (user: User) => {
         if (currentBookData) {
             // Process the data as needed
             const currentBook = { ...currentBookData, id: id } as Book;
-            console.log("Current Book:", currentBook);
             return currentBook;
         } else {
-            console.log("Current book not found");
+            console.log("Error fetching todays book.");
             return null;
         }
     }
@@ -63,9 +62,6 @@ export const setBookFinished = async (user: User, book: Book) => {
 
     const db = getDatabase();
 
-    // Get finished book IDs for the user
-    const userFinishedBooksRef = ref(db, `finished_books/${user.uid}`);
-
     // Update current book
     const nextBookQuery = query(
         ref(db, 'books'),
@@ -83,6 +79,9 @@ export const setBookFinished = async (user: User, book: Book) => {
     }
 
     const nextBook = { ...nextBookData, id: id } as Book;
+
+    // Get finished book IDs for the user
+    const userFinishedBooksRef = ref(db, `finished_books/${user.uid}`);
 
     // Update the 'current_book_id'
     await set(userFinishedBooksRef, { current_book_id: nextBook.id });

@@ -1,6 +1,4 @@
-import React, { useState, useEffect, useMemo } from "react";
-import { Navigate } from "react-router-dom";
-import URL from "../routes"
+import React, { useState, useEffect } from "react";
 import { Flex, Divider, Content, Grid } from '@adobe/react-spectrum';
 import Sidebar from "../components/Sidebar";
 import ImageCard from "../components/ImageCard";
@@ -14,11 +12,6 @@ import { ToastQueue } from "@react-spectrum/toast";
 import Highlights from "../components/Highlights";
 
 const Dashboard = ({ user }) => {
-  // Check if the user is authenticated
-  if (!user) {
-    // Redirect to the login page if not authenticated
-    return <Navigate to={URL.Register} />;
-  }
 
   const [selectedAction, setSelectedAction] = useState<string>(Constants.SIDEBAR_TODAY);
   // book fetch
@@ -31,25 +24,25 @@ const Dashboard = ({ user }) => {
   // Reading state
   const [isReading, setIsReading] = useState<boolean>(false);
 
+  // Fetch todays book
   useEffect(() => {
     const fetchUnfinishedBooks = async () => {
       const fetchedBook = await fetchBook(user);
       setBook(fetchedBook);
     };
 
+    console.log("Fetching todays books")
     fetchUnfinishedBooks();
   }, [user]);
 
   useEffect(() => {
-    const fetchLibraryBooks = async () => {
-      const libraryBooksData = await getLibraryBooks(user);
-      setLibraryBooks(libraryBooksData);
-      setHasFetchedLibraryBooks(true);
-    };
-
     if (selectedAction === Constants.SIDEBAR_LIBRARY && !hasFetchedLibraryBooks) {
+      (async () => {
+        const libraryBooksData = await getLibraryBooks(user);
+        setLibraryBooks(libraryBooksData);
+        setHasFetchedLibraryBooks(true);
+      })();
       console.log("Library fetched")
-      fetchLibraryBooks();
     }
 
   }, [user, selectedAction]);
@@ -85,35 +78,33 @@ const Dashboard = ({ user }) => {
   };
 
 
-  const memoedContents = useMemo(() => {
+  // const memoedContents = useMemo(() => {
 
-    // @TODO handle this case later
-    // console.log("memo invoke")
+  //   // @TODO handle this case later
+  //   // console.log("memo invoke")
 
-    return {
-      [Constants.SIDEBAR_TODAY]: <Grid
-        UNSAFE_style={{ overflow: "auto" }}
-        height="100%"
-        gap="size-100"
-      >
-        {book !== null ? <ImageCard book={book} onRead={setIsReading} /> : <></>}
-      </Grid>,
-      [Constants.SIDEBAR_LIBRARY]: <Grid
-        UNSAFE_style={{ overflow: "auto" }}
-        height="100%"
-        gap="size-100"
-      >
-        {libraryBooks.map((book, index) => (
-          <ImageCard key={index} book={book} onRead={setIsReading} />
-        ))}
-      </Grid>,
-      [Constants.SIDEBAR_HIGHLIGHTS]: <Highlights />,
-      [Constants.SUMMARY_CONTENT]: <MultiPageContent setFinishedCallback={moveBookToLibrary} />
-    };
-  }, [summary, libraryBooks, book]);
+  //   return {
+  //     [Constants.SIDEBAR_TODAY]: <Grid
+  //       UNSAFE_style={{ overflow: "auto" }}
+  //       height="100%"
+  //       gap="size-100"
+  //     >
+  //       {book !== null ? <ImageCard book={book} onRead={setIsReading} /> : <></>}
+  //     </Grid>,
+  //     [Constants.SIDEBAR_LIBRARY]: <Grid
+  //       UNSAFE_style={{ overflow: "auto" }}
+  //       height="100%"
+  //       gap="size-100"
+  //     >
+  //       {libraryBooks.map((book, index) => (
+  //         <ImageCard key={index} book={book} onRead={setIsReading} />
+  //       ))}
+  //     </Grid>,
+  //     [Constants.SIDEBAR_HIGHLIGHTS]: <Highlights />,
+  //     [Constants.SUMMARY_CONTENT]: <MultiPageContent setFinishedCallback={moveBookToLibrary} />
+  //   };
+  // }, [summary, libraryBooks, book]);
 
-
-  // @TODO selectedAction change is causing re-render
   const contextValue: DashboardContextInterface = {
     selectedAction,
     setSelectedAction,
@@ -125,10 +116,26 @@ const Dashboard = ({ user }) => {
   return (
     <Flex height="100vh">
       <DashboardContext.Provider value={contextValue}>
-        <Sidebar user={user} />
+        <Sidebar />
         <Divider orientation="vertical" size="M" />
         <Content UNSAFE_style={{ width: "100%" }}>
-          {memoedContents[selectedAction]}
+          {/* {memoedContents[selectedAction]} */}
+          {selectedAction === Constants.SIDEBAR_TODAY && (
+            <Grid UNSAFE_style={{ overflow: "auto" }} height="100%" gap="size-100">
+              {book !== null ? <ImageCard book={book} onRead={setIsReading} /> : <></>}
+            </Grid>
+          )}
+          {selectedAction === Constants.SIDEBAR_LIBRARY && (
+            <Grid UNSAFE_style={{ overflow: "auto" }} height="100%" gap="size-100">
+              {libraryBooks.map((book, index) => (
+                <ImageCard key={index} book={book} onRead={setIsReading} />
+              ))}
+            </Grid>
+          )}
+          {selectedAction === Constants.SIDEBAR_HIGHLIGHTS && <Highlights />}
+          {selectedAction === Constants.SUMMARY_CONTENT && (
+            <MultiPageContent setFinishedCallback={moveBookToLibrary} />
+          )}
         </Content>
       </DashboardContext.Provider>
     </Flex>

@@ -1,11 +1,14 @@
-import React from 'react';
-import { Avatar, Text, Menu, MenuTrigger, Item, ActionButton } from '@adobe/react-spectrum';
+import React, { useContext } from 'react';
+import { Avatar, Text, Menu, MenuTrigger, Item, ActionButton, Key } from '@adobe/react-spectrum';
 import { signOut } from './auth'
 import LogOutIcon from "@spectrum-icons/workflow/LogOut";
+import { DashboardContext } from '../contexts';
 
-const Profile = ({ user, isSidebarOpen }) => {
+const Profile = ({ isSidebarOpen }) => {
 
-    const handleAction = async (key) => {
+    const { user }: { user: any } = useContext(DashboardContext)
+
+    const handleAction = async (key: Key) => {
         if (key === "logout") {
             await signOut();
         }
@@ -30,14 +33,5 @@ const Profile = ({ user, isSidebarOpen }) => {
         </MenuTrigger>
     );
 };
-
-async function handleSignOut() {
-    try {
-        await signOut();
-        // Do something after sign-out (e.g., update UI)
-    } catch (error) {
-        // Handle sign-out error
-    }
-}
 
 export default Profile;
