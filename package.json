@@ -7,6 +7,7 @@
   "author": "Adilet Kamchibekov <adiletkamchibekov@gmail.com>",
   "license": "GPL-3.0",
   "type": "module",
+  "homepage": "https://kamchibekov.github.io/book-summary",
   "scripts": {
     "start": "webpack serve --port 3000 --mode development --open",
     "build": "webpack --mode production"
