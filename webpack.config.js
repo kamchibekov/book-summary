@@ -33,11 +33,11 @@ export default {
   },
   optimization: {
     // Set minimize to true to enable minification
-    minimize: false,
+    minimize: true,
     // Specify the minimizer
-    minimizer: [
-      // You can configure other minimizers here if needed
-    ],
+    // minimizer: [
+    //   // You can configure other minimizers here if needed
+    // ],
     // Add the following line to suppress the generation of the LICENSE.txt file
     emitOnErrors: false,
   },
