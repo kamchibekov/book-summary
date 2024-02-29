@@ -58,6 +58,6 @@ function App() {
 const rootElement = document.getElementById('root') || document.createElement('div');
 const root = createRoot(rootElement);
 
-root.render(<BrowserRouter basename={process.env.PUBLIC_URL}>
+root.render(<BrowserRouter basename= "/book-summary">
   <App />
 </BrowserRouter>);
