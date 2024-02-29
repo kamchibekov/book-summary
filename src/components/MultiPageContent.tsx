@@ -71,7 +71,7 @@ const MultiPageContent = ({ setFinishedCallback, initialPage = 0 }) => {
             paddingStart="size-300"
             paddingEnd="size-300"
             paddingBottom="size-300"
-            UNSAFE_style={{ fontSize: '1rem', fontFamily: '"Comic Sans MS", Impact, Handlee, fantasy' }}>
+            UNSAFE_style={{ fontSize: '1rem', fontFamily: '"Comic Sans MS", Impact, Handlee, fantasy', opacity: 0.8 }}>
             <p onMouseUp={() => handleMouseUp(value as string)}>{value as React.ReactNode}</p>
             {selection && (<TextSelection selection={selection} callback={handleSaveHighlight} />)}
         </View>
