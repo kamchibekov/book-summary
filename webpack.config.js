@@ -8,7 +8,7 @@ const __dirname = dirname(__filename);
 export default {
   entry: "./src/index.ts",
   output: {
-    path: resolve(__dirname, "public/js/"),
+    path: resolve(__dirname, "docs/js/"),
     filename: "app.js",
   },
   module: {

@@ -6,8 +6,6 @@ import Constants from "../constants"
 import Strings from "../strings"
 import URL from "../routes"
 
-// import Logo from "../../public/icons/icon-192x192.png"
-
 const RegisterPage = () => {
 
     return <Flex direction="column" height="100vh" gap="size-100" justifyContent="center" alignItems="center">

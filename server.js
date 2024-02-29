@@ -8,7 +8,7 @@ const server = http.createServer((req, res) => {
   try {
     const stat = fs.statSync(filePath);
   } catch (error) {
-    filePath = path.join(path.resolve(), "public" + url);
+    filePath = path.join(path.resolve(), "docs" + url);
   }
 
   const ext = path.extname(filePath);
@@ -17,7 +17,7 @@ const server = http.createServer((req, res) => {
 
   if (!ext) {
     contentType = "text/html";
-    filePath = path.join(path.resolve(), "public/index.html");
+    filePath = path.join(path.resolve(), "docs/index.html");
   } else
     switch (ext) {
       case ".html":
