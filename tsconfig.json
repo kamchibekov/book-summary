@@ -1,7 +1,10 @@
 {
   "compilerOptions": {
+    "lib": ["es6", "dom"],
+    "noImplicitAny": true,
+    "noImplicitThis": true,
+    "strictNullChecks": true,
     "target": "es2017",
-    "lib": ["dom", "es2015"],
     "module": "esnext",
     "jsx": "react",
     "strict": true,
@@ -16,10 +19,9 @@
     "removeComments": true,
     "preserveConstEnums": true,
     "resolveJsonModule": true,
-    "noImplicitAny": false,
     "declaration": false,
     "allowSyntheticDefaultImports": true
   },
-  "include": ["src/**/*.ts", "src/**/*.tsx", "src/types.ts"],
+  "include": ["src/**/*.ts", "src/**/*.tsx", "src/config/types.ts"],
   "exclude": ["node_modules"]
 }
