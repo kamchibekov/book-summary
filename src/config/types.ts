@@ -8,19 +8,15 @@ export interface Book {
   summary: string;
 }
 
-export interface Highlight {
+export interface HighlightInfo {
   id?: string;
-  text: string;
   book_id: string;
   book_title: string;
   book_author: string;
   book_image_url: string;
+  highlights: HighlightText[];
 }
 
-export interface BookHighlight {
-  book_id: string;
-  book_title: string;
-  book_author: string;
-  book_image_url: string;
-  highlights: { id?: string | undefined; text: string }[];
+export interface HighlightText {
+  text: string;
 }

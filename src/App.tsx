@@ -1,63 +1,108 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, StrictMode, Suspense } from 'react';
 import { createRoot } from 'react-dom/client';
-import { defaultTheme, Provider, ProgressCircle, Flex, InlineAlert, Heading, Content } from '@adobe/react-spectrum';
-import { BrowserRouter, useNavigate, Routes, Route } from 'react-router-dom';
+import ThemeProvider from '@mui/material/styles/ThemeProvider';
+import createTheme from '@mui/material/styles/createTheme';
+import CircularProgress from '@mui/material/CircularProgress';
+import Box from '@mui/material/Box';
+import CssBaseline from '@mui/material/CssBaseline';
+import { AlertProvider } from './providers/AlertProvider';
+import useMediaQuery from '@mui/material/useMediaQuery';
+import { BrowserRouter } from 'react-router-dom';
+import { grey } from '@mui/material/colors';
 import { getAuth, User } from "firebase/auth"
-import RegisterPage from "./pages/register"
-import Dashboard from "./pages/dashboard"
-import URL from './routes';
-import { ToastContainer } from '@react-spectrum/toast'
+import RegisterPage from "./pages/Register.page"
+import Dashboard from "./pages/Dashboard.page"
 
 function App() {
-  const navigate = useNavigate();
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const unsubscribe = getAuth().onAuthStateChanged((user) => {
-      // If user is authenticated, the 'user' parameter will contain user information
-      // Otherwise, it will be null
-      setUser(user);
+      if (user) {
+        setUser(user);
+      } else {
+        // No user is signed in. Show the sign in page.
+      }
       setLoading(false);
     });
 
-    // Clean up the subscription when the component unmounts
     return () => unsubscribe();
   }, []);
 
-  // Font-family to consider - "Comic Sans MS", Impact, Handlee, fantasy
-  // Opacity can be 0.9 to lower eye strain
+  const prefersDarkMode = useMediaQuery('(prefers-color-scheme: dark)');
+
+  const theme = React.useMemo(
+    () =>
+      createTheme({
+        palette: {
+          mode: prefersDarkMode ? 'dark' : 'light',
+          ...(prefersDarkMode ? {
+            // palette values for dark mode
+            background: {
+              default: grey[900],
+              paper: grey[800],
+            },
+            // text: {
+            //   primary: '#fff',
+            //   secondary: grey[500],
+            // },
+          } : {
+            // palette values for light mode
+            background: {
+              default: grey[100],
+              paper: '#fff',
+            },
+            // text: {
+            //   primary: grey[900],
+            //   secondary: grey[800],
+            // },
+          }
+          ),
+        },
+      }),
+    [prefersDarkMode],
+  );
 
   return (
-    <Provider theme={defaultTheme} router={{ navigate }} height="100vh">
-      <ToastContainer />
-
-      {loading &&
-        <Flex direction="column" height="100vh" justifyContent="center" alignItems="center">
-          <ProgressCircle aria-label="Loading…" isIndeterminate size="L" />
-        </Flex>}
-
-      {!loading && <Routes>
-        {<Route path={URL.Dashboard} element={user ? <Dashboard user={user} /> : <RegisterPage />} />}
-      </Routes>}
-    </Provider>
+    <StrictMode>
+      <CssBaseline />
+      <BrowserRouter basename="/book-summary">
+        <ThemeProvider theme={theme}>
+          <Box
+            sx={{
+              bgcolor: 'background.default',
+              color: 'text.primary',
+              overflow: 'auto',
+              minHeight: '100vh',
+            }}
+          >
+            <AlertProvider>
+              {loading ? (
+                <Box
+                  sx={{
+                    height: '100vh',
+                    display: 'flex',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                  }}
+                >
+                  <CircularProgress />
+                </Box>
+              ) : user ? (
+                <Dashboard user={user} />
+              ) : (
+                <RegisterPage />
+              )}
+            </AlertProvider>
+          </Box>
+        </ThemeProvider>
+      </BrowserRouter>
+    </StrictMode >
   );
 }
-
-/*
-{<Flex direction="column" height="100vh" justifyContent="center" alignItems="center">
-        <InlineAlert variant="negative">
-          <Heading>Unable to process log in</Heading>
-          <Content>
-            There was an error logging you in. Please check that your account on google is verified and try again.
-          </Content>
-        </InlineAlert>
-      </Flex>}
-*/
 
 const rootElement = document.getElementById('root') || document.createElement('div');
 const root = createRoot(rootElement);
 
-root.render(<BrowserRouter basename= "/book-summary">
-  <App />
-</BrowserRouter>);
+root.render(<App />);

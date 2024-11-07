@@ -1,12 +1,21 @@
-import { createContext } from "react";
-import { DashboardContextInterface } from "./interface/DashboardContextInterface";
-import Constants from "./constants";
-import { Book } from "./types";
+import { createContext } from 'react';
+import Constants from './config/constants';
+import { Book, HighlightInfo } from './config/types';
+import { User } from 'firebase/auth';
+
+// Context for the dashboard
+export interface DashboardContextInterface {
+  readingBook: Book | null;
+  setReadingBook: (book: Book) => void;
+  user: User;
+  highlightInfo: HighlightInfo | null;
+  setHighlightInfo: (highlightInfo: HighlightInfo) => void;
+}
 
 export const DashboardContext = createContext<DashboardContextInterface>({
-  selectedAction: Constants.SIDEBAR_TODAY,
-  setSelectedAction: (action: string) => {},
-  summary: null,
-  setSummary: (book: Book) => {},
-  user: null,
+  readingBook: null,
+  setReadingBook: (book: Book) => {},
+  user: {} as User,
+  highlightInfo: null,
+  setHighlightInfo: (highlightInfo: HighlightInfo) => {}
 });

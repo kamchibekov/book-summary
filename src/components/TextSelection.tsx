@@ -1,26 +1,29 @@
 import React, { useContext } from 'react';
-import { View, ActionButton, Text } from '@adobe/react-spectrum';
-import BookmarkSingle from '@spectrum-icons/workflow/BookmarkSingle';
-import { ToastQueue } from '@react-spectrum/toast';
+import Button from '@mui/material/Button';
+import Box from '@mui/material/Box';
+import Bookmark from '@mui/icons-material/BookmarkOutlined';
 import { DashboardContext } from '../contexts';
-import { Book, Highlight } from '../types';
+import { HighlightText } from '../config/types';
+import { useAlert } from '../providers/AlertProvider';
+import Strings from '../config/strings';
 
-const TextSelection = ({ selection, callback }) => {
-    const { summary } = useContext(DashboardContext)
+interface TextSelectionProps {
+    selection: Selection;
+    saveHighlight: (highlight: HighlightText) => void;
+}
 
-    const handleIconClick = () => {
-        ToastQueue.positive('Highlight added!', { timeout: 1000 });
-        if (summary) {
-            const highlight: Highlight = {
-                text: selection.toString().trim(),
-                book_id: summary?.id,
-                book_title: summary?.title,
-                book_author: summary?.author,
-                book_image_url: summary?.image_url,
+const TextSelection = ({ selection, saveHighlight }: TextSelectionProps) => {
+    const { readingBook } = useContext(DashboardContext);
+    const { pushAlert } = useAlert();
 
-            };
-            callback(highlight);
-        }
+    if (!readingBook) return <></>
+
+    const handleSaveHighlight = () => {
+        const highlightText: HighlightText = {
+            text: selection.toString()
+        };
+        saveHighlight(highlightText);
+        pushAlert('success', 'Highlight saved!');
     };
 
     const positionIcon = () => {
@@ -34,12 +37,13 @@ const TextSelection = ({ selection, callback }) => {
     };
 
     return (
-        <View UNSAFE_style={{ position: 'absolute', ...positionIcon() }}>
-            <ActionButton onPress={handleIconClick}>
-                <BookmarkSingle />
-                <Text>Highlight</Text>
-            </ActionButton>
-        </View>
+        <>
+            <Box sx={{ position: 'absolute', ...positionIcon() }}>
+                <Button variant='contained' startIcon={<Bookmark />} onClick={handleSaveHighlight} color='success'>
+                    {Strings.highlight}
+                </Button>
+            </Box>
+        </>
     );
 };
 

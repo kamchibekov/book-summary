@@ -1,78 +1,96 @@
 import React, { useContext, useState } from "react";
-import { Flex, Button, View, ButtonGroup } from '@adobe/react-spectrum';
-import ChevronLeft from "@spectrum-icons/workflow/ChevronLeft";
-import ChevronRight from "@spectrum-icons/workflow/ChevronRight";
-import Bookmark from "@spectrum-icons/workflow/Bookmark";
-import BookmarkSingle from "@spectrum-icons/workflow/BookmarkSingle";
-import AutomatedSegment from "@spectrum-icons/workflow/AutomatedSegment";
-import Profile from './profile'
-import Strings from "../strings";
-import Constants from "../constants";
-import { DashboardContext } from '../contexts'
+import Avatar from "@mui/material/Avatar";
+import Drawer from "@mui/material/Drawer";
+import List from "@mui/material/List";
+import ListItem from "@mui/material/ListItem";
+import ListItemIcon from "@mui/material/ListItemIcon";
+import ListItemText from "@mui/material/ListItemText";
+import Menu from "@mui/material/Menu";
+import MenuItem from "@mui/material/MenuItem";
+import Divider from "@mui/material/Divider";
+import Book from "@mui/icons-material/Book";
+import BookmarkSingle from "@mui/icons-material/Bookmarks";
+import LibraryBooks from "@mui/icons-material/LibraryBooks";
+import Logout from '@mui/icons-material/Logout';
+import Box from "@mui/material/Box";
+import Strings from "../config/strings";
+import Constants from "../config/constants";
+import { Link } from 'react-router-dom';
+import URL from "../config/routes";
+import { DashboardContext } from "../contexts";
+import { signOut } from "../api/auth.api";
 
 
-const Sidebar = () => {
+const Sidebar = ({ isSidebarOpen, drawerToggle }: { isSidebarOpen: boolean, drawerToggle: () => void }) => {
+    const { user } = useContext(DashboardContext);
+    const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
 
-    const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-    const { selectedAction, setSelectedAction } = useContext(DashboardContext)
-
-    const toggleSidebar = () => {
-        setIsSidebarOpen(!isSidebarOpen);
+    const handleMenuClick = (event: React.MouseEvent<HTMLLIElement>) => {
+        setAnchorEl(event.currentTarget);
     };
 
-    const handleAction = (selected: string) => {
-        setSelectedAction(selected)
-    }
+    const handleAction = async () => {
+        await signOut();
+        window.location.reload();
+    };
 
     return (
         <>
-            <View
-                height="100%"
-                width={isSidebarOpen ? "size-3000" : "size-675"}
+            <Drawer
+                // variant="persistent"
+                open={isSidebarOpen}
+                onClose={drawerToggle}
             >
-                <Flex
-                    direction="column"
-                    height="100%"
-                    justifyContent="center"
-                    gap="size-300"
+                <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%', justifyContent: 'center' }}>
+                    <List>
+                        <ListItem component={Link} to={URL.Dashboard} sx={{ color: 'inherit' }} onClick={drawerToggle}>
+                            <ListItemIcon>
+                                <Book />
+                            </ListItemIcon>
+                            <ListItemText primary={Strings.todaysBlink} />
+                        </ListItem>
+                        <ListItem component={Link} to={URL.Library} sx={{ color: 'inherit' }} onClick={drawerToggle}>
+                            <ListItemIcon>
+                                <LibraryBooks />
+                            </ListItemIcon>
+                            <ListItemText primary={Strings.library} />
+                        </ListItem>
+                        <ListItem component={Link} to={URL.Highlights} sx={{ color: 'inherit' }} onClick={drawerToggle}>
+                            <ListItemIcon>
+                                <BookmarkSingle />
+                            </ListItemIcon>
+                            <ListItemText primary={Strings.highlights} />
+                        </ListItem>
+                        { /* make this an anchor to show menu on click */}
+                    </List>
+                </Box>
+
+                <List>
+                    <Divider />
+                    <ListItem onClick={handleMenuClick}>
+                        <ListItemIcon>
+                            <Avatar alt={user?.displayName as string} src={user?.photoURL as string} />
+                        </ListItemIcon>
+                        <ListItemText primary={user?.displayName} />
+                    </ListItem>
+                </List>
+            </Drawer>
+            <React.Fragment>
+                <Menu
+                    anchorEl={anchorEl}
+                    open={Boolean(anchorEl)}
+                    onClose={() => setAnchorEl(null)}
+                    keepMounted
                 >
-                    <ButtonGroup orientation="vertical" align="center" alignSelf="center">
-                        <Button
-                            variant="secondary"
-                            onPress={() => handleAction(Constants.SIDEBAR_TODAY)}
-                            isDisabled={selectedAction === Constants.SIDEBAR_TODAY}
-                        >
-                            <AutomatedSegment /> &nbsp;{isSidebarOpen ? Strings.todaysBlink : ''}
-                        </Button>
-                        <Button
-                            variant="secondary"
-                            onPress={() => handleAction(Constants.SIDEBAR_LIBRARY)}
-                            isDisabled={selectedAction === Constants.SIDEBAR_LIBRARY}
-                        >
-                            <Bookmark /> &nbsp;{isSidebarOpen ? Strings.library : ''}
-                        </Button>
-                        <Button
-                            variant="secondary"
-                            onPress={() => handleAction(Constants.SIDEBAR_HIGHLIGHTS)}
-                            isDisabled={selectedAction === Constants.SIDEBAR_HIGHLIGHTS}
-                        >
-                            <BookmarkSingle /> &nbsp;{isSidebarOpen ? Strings.highlights : ''}
-                        </Button>
-                    </ButtonGroup>
-                    <Profile isSidebarOpen={isSidebarOpen} />
-                </Flex>
-            </View>
-
-            {/* Toggle Button */}
-            <Button variant="secondary"
-                alignSelf="center"
-                onPress={toggleSidebar}
-                marginEnd="-16px"
-                style="fill"
-
-            >
-                {isSidebarOpen ? <ChevronLeft /> : <ChevronRight />}
-            </Button>
+                    {/* <Divider /> */}
+                    <MenuItem onClick={handleAction}>
+                        <ListItemIcon>
+                            <Logout fontSize="small" />
+                        </ListItemIcon>
+                        <ListItemText>Logout</ListItemText>
+                    </MenuItem>
+                </Menu>
+            </React.Fragment>
         </>
     );
 };

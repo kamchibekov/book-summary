@@ -1,45 +1,35 @@
-import React, { useState, useContext, useEffect, useRef, createContext } from "react";
-import { Button, View, Grid, Heading, Flex } from '@adobe/react-spectrum';
-import ChevronRight from "@spectrum-icons/workflow/ChevronRight";
-import ChevronLeft from "@spectrum-icons/workflow/ChevronLeft";
+import React, { useState, useContext, useEffect, useRef } from "react";
+import IconButton from "@mui/material/IconButton";
+import Grid from '@mui/material/Unstable_Grid2';
+import Typography from "@mui/material/Typography";
+import ChevronLeft from "@mui/icons-material/ChevronLeft";
+import ChevronRight from "@mui/icons-material/ChevronRight";
+import Box from "@mui/material/Box";
 import { DashboardContext } from "../contexts";
 import TextSelection from "./TextSelection";
-import { saveHighlight } from "../firease/highlights.api";
-import { Highlight } from "../types";
+import { saveHighlight } from "../api/highlights.api";
+import { HighlightText } from "../config/types";
+import { useTheme } from "@mui/material/styles";
+import { setBookFinished } from "../api/books.api";
+import Button from "@mui/material/Button";
+import Strings from "../config/strings";
+import { useAlert } from "../providers/AlertProvider";
 
-const MultiPageContent = ({ setFinishedCallback, initialPage = 0 }) => {
-    const { summary } = useContext(DashboardContext)
-    const { user } = useContext(DashboardContext);
+interface Props {
+    showSaveButton?: boolean;
+}
 
-    if (summary === null) return <></>
+function MultiPageContent({ showSaveButton = true }: Props) {
+    const theme = useTheme();
+    const { readingBook, user } = useContext(DashboardContext)
 
-    const [currentPage, setCurrentPage] = useState(initialPage);
-    const data = JSON.parse(summary['summary'])
-    const currentPageRef = useRef(currentPage);
+    if (readingBook === null) return <></>
+
+    const { pushAlert } = useAlert();
+
+    const [currentPage, setCurrentPage] = useState(0);
+    const data = JSON.parse(readingBook['summary'])
     const [selection, setSelection] = useState<Selection | null>(null);
-
-    useEffect(() => {
-        currentPageRef.current = Math.max(currentPage, currentPageRef.current);
-
-    }, [currentPage]);
-
-    useEffect(() => {
-        // Your component did mount logic here
-
-        return () => {
-
-            console.log("paging: ", currentPageRef.current, pages.length - 1)
-
-            // Your component will unmount logic here
-            if (currentPageRef.current >= pages.length - 1) {
-                // set book finished on last page
-                console.log("call finish read un unmount");
-                setFinishedCallback();
-            }
-
-            console.log('Component is unmounted');
-        };
-    }, []);
 
     const handleMouseUp = (text: string) => {
         const selection = window.getSelection();
@@ -56,60 +46,62 @@ const MultiPageContent = ({ setFinishedCallback, initialPage = 0 }) => {
         }
     };
 
-    const handleSaveHighlight = (highlight: Highlight) => {
-        saveHighlight(user, highlight)
+    const handleSaveHighlight = (highlightText: HighlightText) => {
+        saveHighlight(user, highlightText, readingBook)
         setSelection(null)
     }
 
-    const pages = Object.entries(data).map(([key, value]) => <Grid
-        columns="1fr"
-        rowGap="size-100"
+    const handleFinishRead = () => {
+        setBookFinished(user, readingBook.id)
+        pushAlert('success', Strings.marked_finished);
+    }
 
-    >
-        <View padding="size-300" paddingBottom="size-0"><Heading level={3}>{key}</Heading></View>
-        <View
-            paddingStart="size-300"
-            paddingEnd="size-300"
-            paddingBottom="size-300"
-            UNSAFE_style={{ fontSize: '1rem', fontFamily: '"Comic Sans MS", Impact, Handlee, fantasy', opacity: 0.8 }}>
-            <p onMouseUp={() => handleMouseUp(value as string)}>{value as React.ReactNode}</p>
-            {selection && (<TextSelection selection={selection} callback={handleSaveHighlight} />)}
-        </View>
-    </Grid>
-    )
-
-    const handlePrevClick = () => setCurrentPage(currentPage - 1);
-
-    const handleNextClick = () => {
-        setCurrentPage((prevPage) => {
-            const newPage = prevPage + 1;
-            return newPage;
-        });
-    };
-
+    const pages = Object.entries(data).map(([key, value]) => (
+        <Box key={key} whiteSpace='pre-wrap'>
+            <Typography variant="h6" align="center">{key}</Typography>
+            <br />
+            <Box
+                onMouseUp={() => handleMouseUp(value as string)}
+                sx={{ fontSize: '1.125rem', lineHeight: '1.625rem', color: theme.palette.mode === 'dark' ? theme.palette.text.secondary : '#3a4649' }}
+            >
+                {value as React.ReactNode}
+            </Box>
+            {selection && (
+                <TextSelection
+                    selection={selection}
+                    saveHighlight={handleSaveHighlight}
+                />
+            )}
+        </Box>
+    ));
 
     return (
-        <Grid
-            height="100%"
-            UNSAFE_style={{ overflow: "auto" }}
-        >
-            <View>
-                {pages[currentPage]}
-            </View>
-            <Flex
-                justifyContent="space-evenly"
-                marginTop="size-100">
+        <Grid container mt={2} mb={2}>
+            {pages[currentPage]}
+            <Box sx={{ display: 'flex', justifyContent: 'space-evenly', width: '100%' }} mt={2}>
                 {currentPage > 0 && (
-                    <Button variant="secondary" onPress={handlePrevClick}>
+                    <IconButton aria-label="delete" size="small" onClick={() => setCurrentPage(currentPage - 1)}>
                         <ChevronLeft />
-                    </Button>
+                    </IconButton>
                 )}
                 {currentPage < pages.length - 1 && (
-                    <Button variant="secondary" onPress={handleNextClick}>
+                    <IconButton aria-label="delete" size="small" onClick={() => setCurrentPage(currentPage + 1)}>
                         <ChevronRight />
-                    </Button>
+                    </IconButton>
                 )}
-            </Flex>
+            </Box>
+            <Box sx={{ display: 'flex', justifyContent: 'start', width: '100%' }} mt={4}>
+                <Typography variant="h6" color={theme.palette.text.secondary}>
+                    {currentPage + 1}/{pages.length}
+                </Typography>
+            </Box>
+            {showSaveButton && currentPage === pages.length - 1 && (
+                <Box sx={{ display: 'flex', justifyContent: 'end', width: '100%' }} mt={4}>
+                    <Button variant="contained" onClick={handleFinishRead}>
+                        {Strings.set_finished}
+                    </Button>
+                </Box>
+            )}
         </Grid>
     );
 };
