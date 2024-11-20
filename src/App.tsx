@@ -1,4 +1,4 @@
-import React, { useEffect, useState, StrictMode, Suspense } from 'react';
+import React, { useEffect, useState, StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import ThemeProvider from '@mui/material/styles/ThemeProvider';
 import createTheme from '@mui/material/styles/createTheme';
@@ -7,7 +7,7 @@ import Box from '@mui/material/Box';
 import CssBaseline from '@mui/material/CssBaseline';
 import { AlertProvider } from './providers/AlertProvider';
 import useMediaQuery from '@mui/material/useMediaQuery';
-import { BrowserRouter } from 'react-router-dom';
+import { BrowserRouter, createBrowserRouter, Route, Routes, RouterProvider } from 'react-router-dom';
 import { grey } from '@mui/material/colors';
 import { getAuth, User } from "firebase/auth"
 import RegisterPage from "./pages/Register.page"
@@ -67,35 +67,32 @@ function App() {
   return (
     <StrictMode>
       <CssBaseline />
-      <BrowserRouter basename="/book-summary">
+      <BrowserRouter
+        basename="/book-summary"
+        future={{
+          v7_startTransition: true,
+        }}
+      >
         <ThemeProvider theme={theme}>
-          <Box
-            sx={{
-              bgcolor: 'background.default',
-              color: 'text.primary',
-              overflow: 'auto',
-              minHeight: '100vh',
-            }}
-          >
-            <AlertProvider>
-              {loading ? (
-                <Box
-                  sx={{
-                    height: '100vh',
-                    display: 'flex',
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                  }}
-                >
-                  <CircularProgress />
-                </Box>
-              ) : user ? (
-                <Dashboard user={user} />
-              ) : (
-                <RegisterPage />
-              )}
-            </AlertProvider>
-          </Box>
+
+          <AlertProvider>
+            {loading ? (
+              <Box
+                sx={{
+                  height: '100vh',
+                  display: 'flex',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                }}
+              >
+                <CircularProgress />
+              </Box>
+            ) : user ? (
+              <Dashboard user={user} />
+            ) : (
+              <RegisterPage />
+            )}
+          </AlertProvider>
         </ThemeProvider>
       </BrowserRouter>
     </StrictMode >

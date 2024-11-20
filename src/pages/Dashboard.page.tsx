@@ -8,11 +8,12 @@ import MultiPageContent from "../components/MultiPageContent";
 import { DashboardContextInterface, DashboardContext } from '../contexts'
 import { Book, HighlightInfo } from "../config/types";
 import { User } from "firebase/auth";
-import URL from "../config/routes";
+import RuoteEnum from "../config/routes";
 import TodaysBook from "../components/TodaysBook";
 import LibraryPage from "./Library.page";
 import HighlightsPage from "./Highlights.page";
 import BookHighlights from "../components/BookHighlights";
+import NotFoundPage from "./NotFound.page";
 
 function DashboardPage({ user }: { user: User }) {
 
@@ -42,12 +43,14 @@ function DashboardPage({ user }: { user: User }) {
         <Sidebar isSidebarOpen={isSidebarOpen} drawerToggle={drawerToggle} />
         <Container>
           <Routes>
-            <Route path={URL.Dashboard} element={<TodaysBook />} />
-            <Route path={URL.Library} element={<LibraryPage />} />
-            <Route path={URL.LibraryBook} element={<MultiPageContent showSaveButton={false} />} />
-            <Route path={URL.Highlights} element={<HighlightsPage />} />
-            <Route path={URL.Book} element={<MultiPageContent />} />
-            <Route path={URL.BookHighlights} element={<BookHighlights />} />
+            <Route path={RuoteEnum.Dashboard} element={<TodaysBook />} />
+            <Route path={RuoteEnum.Library}>
+              <Route index element={<LibraryPage />} />
+            </Route>
+            <Route path={RuoteEnum.Highlights} element={<HighlightsPage />} />
+            <Route path={RuoteEnum.BookHighlights} element={<BookHighlights />} />
+            <Route path={RuoteEnum.Book} element={<MultiPageContent />} />
+            <Route path="*" element={<NotFoundPage />} />
           </Routes>
         </Container>
       </DashboardContext.Provider>

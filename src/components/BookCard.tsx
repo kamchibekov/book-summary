@@ -8,13 +8,13 @@ import Grid from '@mui/material/Unstable_Grid2';
 import { DashboardContext } from "../contexts";
 import { Book } from "../config/types";
 import { getStorage, ref, getDownloadURL } from 'firebase/storage';
+import RuoteEnum from "../config/routes";
 
 interface BookCardProps {
     book: Book;
-    url: string;
 }
 
-const BookCard = ({ book, url }: BookCardProps) => {
+const BookCard = ({ book }: BookCardProps) => {
     const { readingBook, setReadingBook } = useContext(DashboardContext);
     const [imageUrl, setImageUrl] = useState('');
     const storage = getStorage();
@@ -55,7 +55,7 @@ const BookCard = ({ book, url }: BookCardProps) => {
                         variant="text"
                         onClick={() => setReadingBook(book)}
                         component={Link}
-                        to={url.replace(':bookTitle', toUrlFriendly(book.title))}>
+                        to={RuoteEnum.Book.replace(':bookId', book.id)}>
                         {book.id === readingBook?.id ? "Continue reading" : "Read"}
                     </Button>
                 </Box>
@@ -66,15 +66,15 @@ const BookCard = ({ book, url }: BookCardProps) => {
 
 export default BookCard;
 
-function toUrlFriendly(title: string): string {
-    // Replace spaces with dashes
-    let urlFriendlyText = title.replace(/\s+/g, '-');
+// function toUrlFriendly(title: string): string {
+//     // Replace spaces with dashes
+//     let urlFriendlyText = title.replace(/\s+/g, '-');
 
-    // Remove special characters
-    urlFriendlyText = urlFriendlyText.replace(/[^\w\s-]/g, '');
+//     // Remove special characters
+//     urlFriendlyText = urlFriendlyText.replace(/[^\w\s-]/g, '');
 
-    // Convert to lowercase
-    urlFriendlyText = urlFriendlyText.toLowerCase();
+//     // Convert to lowercase
+//     urlFriendlyText = urlFriendlyText.toLowerCase();
 
-    return urlFriendlyText;
-}
+//     return urlFriendlyText;
+// }

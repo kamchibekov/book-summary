@@ -3,7 +3,8 @@ abstract class Strings {
   static readonly APP_NAME = 'Book Summary';
   // Register page
   static readonly app_logo_text = 'Book Summary logo';
-  static readonly sign_in_google = 'Sign In with Google!';
+  static readonly sign_in_google = 'SIGN IN WITH GOOGLE';
+  static readonly sign_out = 'Sign Out';
   // Sidebar Component
   static readonly todaysBlink = "Today's blink";
   static readonly library = 'My Library';
@@ -22,8 +23,15 @@ abstract class Strings {
   static readonly highlight_deleted = 'Highlight deleted!';
   static readonly highlight_delete_confirm =
     'Are you sure you want to delete this highlight?';
+
+  // Book
   static readonly set_finished = 'Mark as finished';
   static readonly marked_finished = 'Book marked as finished! Great job!';
+
+  // Error
+  static readonly to_dashboard = 'Go to Dashboard';
+  static readonly not_found_message =
+    "The page you're looking for doesn't exist.";
 }
 
 export default Strings;

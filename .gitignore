@@ -132,3 +132,8 @@ dist
 .DS_Store
 
 configs/
+
+# github pages push instructions
+# rename basename to book-summary in App.tsx
+# add /book-summary url in docs/index.html before app.js
+# add /book-summary url in docs/manifest.json before icons

@@ -10,6 +10,7 @@ import Avatar from '@mui/material/Avatar';
 import { signOut } from '../api/auth.api'
 import Logout from '@mui/icons-material/Logout';
 import { DashboardContext } from '../contexts';
+import Strings from '../config/strings';
 
 const Profile = () => {
 
@@ -47,7 +48,7 @@ const Profile = () => {
                     <ListItemIcon>
                         <Logout fontSize="small" />
                     </ListItemIcon>
-                    <ListItemText>Logout</ListItemText>
+                    <ListItemText>{Strings.sign_out}</ListItemText>
                 </MenuItem>
             </Menu>
         </Button>

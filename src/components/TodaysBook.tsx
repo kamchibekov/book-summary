@@ -1,9 +1,8 @@
 import React, { useState, useEffect, useContext } from "react";
-import { Book } from "../config/types";
-import { fetchBook } from "../api/books.api";
 import { DashboardContext } from "../contexts";
+import { fetchBook } from "../api/books.api";
 import BookCard from "./BookCard";
-import URL from "../config/routes";
+import { Book } from "../config/types";
 
 function TodaysBook() {
 
@@ -24,7 +23,7 @@ function TodaysBook() {
 
 	return (
 		<>
-			{book && <BookCard book={book} url={URL.Book} />}
+			{book && <BookCard book={book} />}
 		</>
 	);
 }

@@ -12,7 +12,8 @@ import { getHighlights } from "../api/highlights.api";
 import { DashboardContext } from "../contexts";
 import Strings from "../config/strings";
 import { useNavigate } from "react-router-dom";
-import URL from "../config/routes";
+import RuoteEnum from "../config/routes";
+import CircularProgress from "@mui/material/CircularProgress";
 
 const HighlightsPage = () => {
 
@@ -22,6 +23,7 @@ const HighlightsPage = () => {
   const [books, setBooks] = useState<HighlightInfo[]>([]);
   const [currentKey, setCurrentKey] = useState<null | string>(null);
   const [isLastPage, setIsLastPage] = useState<string | boolean | undefined>(true);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
 
   // get books
   useEffect(() => {
@@ -43,10 +45,11 @@ const HighlightsPage = () => {
       setIsLastPage(isLastPage);
 
       setBooks(booksWithHighlightsAndImages);
+      setIsLoading(false);
 
       console.log("highlights fetched", booksWithHighlightsAndImages, isLastPage)
     }
-
+    setIsLoading(true);
     fetchBooksWithHighlightsAndImages();
   }, [currentKey])
 
@@ -57,15 +60,12 @@ const HighlightsPage = () => {
 
   const handleHighlighInfoClick = (highlight: HighlightInfo) => {
     setHighlightInfo(highlight)
-    navigate(URL.BookHighlights.replace(':bookId', highlight.book_id))
+    navigate(RuoteEnum.BookHighlights.replace(':bookId', highlight.book_id))
   }
 
   return (
     <React.Fragment>
       <Grid container spacing={2} mt={2}>
-
-        {books.length === 0 && <Typography variant="h6" align="center" color="text.secondary">{Strings.no_highlights}</Typography>}
-
         {books.map((book) => (
           <Grid key={book.book_id} md={2} sx={{ cursor: "pointer" }} onClick={() => handleHighlighInfoClick(book)}>
             <Card>
@@ -90,6 +90,8 @@ const HighlightsPage = () => {
             </Card>
           </Grid>
         ))}
+        {isLoading && <CircularProgress />}
+        {!isLoading && books.length === 0 && <Typography variant="h6" align="center" color="text.secondary">{Strings.no_highlights}</Typography>}
       </Grid>
 
       {isLastPage !== true && (
