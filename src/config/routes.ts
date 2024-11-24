@@ -8,6 +8,6 @@ enum RouteEnum {
   Library = 'library',
   // Highlights
   Highlights = '/highlights',
-  BookHighlights = '/highlights/:bookId',
+  BookHighlights = ':bookId',
 }
 export default RouteEnum;

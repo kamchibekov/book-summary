@@ -1,7 +1,6 @@
 import React, { useContext, useEffect, useState } from "react";
 import Grid from "@mui/material/Unstable_Grid2/Grid2";
 import Card from "@mui/material/Card";
-import CardMedia from "@mui/material/CardMedia";
 import CardContent from "@mui/material/CardContent";
 import Typography from "@mui/material/Typography";
 import CardActions from "@mui/material/CardActions";
@@ -10,20 +9,68 @@ import { DashboardContext } from "../contexts";
 import IconButton from "@mui/material/IconButton";
 import { deleteHighlight } from "../api/highlights.api";
 import Box from "@mui/material/Box";
-import Button from "@mui/material/Button";
 import CopyAllTwoToneIcon from "@mui/icons-material/CopyAllTwoTone";
 import { useAlert } from "../providers/AlertProvider";
 import Close from "@mui/icons-material/Close";
 import Strings from "../config/strings";
+import { useParams } from "react-router-dom";
+import { getHighlightsByBookId } from "../api/highlights.api";
+import { Navigate } from "react-router-dom";
+import RouteEnum from "../config/routes";
+import { CircularProgress } from "@mui/material";
+import { getStorage, ref, getDownloadURL } from 'firebase/storage';
+
+function normalizeHighlights(highlightInfo: HighlightInfo | null) {
+  if (!highlightInfo) return []
+  return Object.entries(highlightInfo.highlights).map(([id, highlight]) => ([id, highlight.text]))
+}
 
 function BookHighlights() {
 
-  const { highlightInfo, user } = useContext(DashboardContext)
+  const { highlightInfo, user, setHighlightInfo } = useContext(DashboardContext)
   const { pushAlert } = useAlert();
+  const { bookId } = useParams<{ bookId: string }>();
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [imageUrl, setImageUrl] = useState(highlightInfo?.book_image_url || '');
+  const [highlights, setHighlights] = useState<string[][]>(normalizeHighlights(highlightInfo));
 
-  const [highlights, setHighlights] = useState<string[][]>([]);
+  if (!bookId) return <Navigate to={RouteEnum.NotFound} replace />
 
-  if (highlightInfo === null) return <></>
+  useEffect(() => {
+    const fetchHighlightInfo = async () => {
+      const fetchedHighlightInfo = await getHighlightsByBookId(user, bookId);
+      if (fetchedHighlightInfo) {
+        setHighlightInfo(fetchedHighlightInfo);
+        setHighlights(normalizeHighlights(fetchedHighlightInfo));
+
+        // load book image
+        const storage = getStorage()
+        const imageRef = ref(storage, fetchedHighlightInfo.book_image_url);
+
+        getDownloadURL(imageRef)
+          .then((url) => {
+            setImageUrl(url);
+          })
+          .catch((error) => {
+            console.error(error);
+          });
+      }
+
+      setIsLoading(false);
+      console.log("Highlights fetched")
+    };
+    if (!highlightInfo) {
+      fetchHighlightInfo();
+      console.log("Fetching highlights")
+    } else {
+      setIsLoading(false);
+    }
+  }, []);
+
+  if (isLoading) return <CircularProgress />
+
+  if (!highlightInfo) return <Navigate to={RouteEnum.NotFound} replace />
+
 
   const handleDelete = (id: string) => {
     if (window.confirm(Strings.highlight_delete_confirm)) {
@@ -39,11 +86,6 @@ function BookHighlights() {
     pushAlert('success', Strings.highlight_copied);
   }
 
-  useEffect(() => {
-    const highlights = Object.entries(highlightInfo.highlights).map(([id, highlight]) => ([id, highlight.text]));
-    setHighlights(highlights);
-  }, [highlightInfo])
-
   return (
     <>
       <Grid container spacing={2} mt={2}>
@@ -52,7 +94,7 @@ function BookHighlights() {
         <Grid xs={12} sm={4} md={3}>
           <Box display="flex" flexDirection="column" alignItems="center">
             <img
-              src={highlightInfo.book_image_url}
+              src={imageUrl}
               alt={highlightInfo.book_title}
               style={{ width: "100%", borderRadius: 8, boxShadow: "0px 4px 12px rgba(0, 0, 0, 0.1)" }}
             />

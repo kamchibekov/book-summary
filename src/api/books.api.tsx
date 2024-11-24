@@ -116,23 +116,34 @@ export const getLibraryBooks = async (user: User) => {
 
 export const fetchBookById = async (bookId: string) => {
   const db = getDatabase();
-  const currentBookQuery = query(
+  const book = query(
     ref(db, 'books'),
     orderByKey(),  // Add this line to specify ordering by key
     equalTo(bookId)
   );
 
-  const currentBookSnapshot = await get(currentBookQuery);
+  const bookSnapshot = await get(book);
 
-  if (!currentBookSnapshot.exists()) return null;
+  if (!bookSnapshot.exists()) return null;
 
-  const [id, currentBookData] = Object.entries(currentBookSnapshot.val())[0] || [];
+  const [id, bookData] = Object.entries(bookSnapshot.val())[0] || [];
 
-  if (currentBookData) {
+  if (bookData) {
     // Process the data as needed
-    const currentBook = { ...currentBookData, id: id } as Book;
-    return currentBook;
+    const fetchedBook = { ...bookData, id: id } as Book;
+    return fetchedBook;
   }
   console.log("Error fetching a book.");
   return null;
 };
+
+export const checkTodaysBook = async (user: User, bookId: string): Promise<Boolean> => {
+  const db = getDatabase();
+  // Check if the current book is todays book
+  const bookQuery = query(
+    ref(db, `${Strings.db_finished_books}/${user.uid}/current_book_id`));
+
+  const bookSnapshot = await get(bookQuery);
+
+  return bookSnapshot.val() === bookId;
+}

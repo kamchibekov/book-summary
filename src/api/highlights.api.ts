@@ -106,3 +106,21 @@ export const deleteHighlight = (user: User, bookId: string, id: string) => {
   );
   remove(highlightsRef);
 };
+
+// get book highlights by id
+export const getHighlightsByBookId = async (user: User, bookId: string) => {
+  const db = getDatabase();
+  const highlightsRef = ref(
+    db,
+    `${Strings.db_highlights}/${user.uid}/${bookId}`
+  );
+  const highlightSnapshot = await get(highlightsRef);
+  const highlightsData: Record<string, HighlightInfo> =
+    highlightSnapshot.val() || {};
+
+  const highlightInfo: HighlightInfo | null = highlightsData
+    ? ({ ...highlightsData, id: bookId } as HighlightInfo)
+    : null;
+
+  return highlightInfo;
+};

@@ -47,8 +47,10 @@ function DashboardPage({ user }: { user: User }) {
             <Route path={RuoteEnum.Library}>
               <Route index element={<LibraryPage />} />
             </Route>
-            <Route path={RuoteEnum.Highlights} element={<HighlightsPage />} />
-            <Route path={RuoteEnum.BookHighlights} element={<BookHighlights />} />
+            <Route path={RuoteEnum.Highlights}>
+              <Route index element={<HighlightsPage />} />
+              <Route path={RuoteEnum.BookHighlights} element={<BookHighlights />} />
+            </Route>
             <Route path={RuoteEnum.Book} element={<MultiPageContent />} />
             <Route path="*" element={<NotFoundPage />} />
           </Routes>

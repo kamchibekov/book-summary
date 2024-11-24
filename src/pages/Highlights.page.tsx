@@ -51,7 +51,7 @@ const HighlightsPage = () => {
     }
     setIsLoading(true);
     fetchBooksWithHighlightsAndImages();
-  }, [currentKey])
+  }, [user])
 
   const handleNextClick = () => {
     if (typeof isLastPage === 'string')

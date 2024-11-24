@@ -10,7 +10,7 @@ import TextSelection from "./TextSelection";
 import { saveHighlight } from "../api/highlights.api";
 import { Book, HighlightText } from "../config/types";
 import { useTheme } from "@mui/material/styles";
-import { fetchBookById, setBookFinished } from "../api/books.api";
+import { fetchBookById, setBookFinished, checkTodaysBook } from "../api/books.api";
 import Button from "@mui/material/Button";
 import Strings from "../config/strings";
 import { useAlert } from "../providers/AlertProvider";
@@ -18,20 +18,17 @@ import { useParams, Navigate } from "react-router-dom";
 import RouteEnum from "../config/routes";
 import CircularProgress from "@mui/material/CircularProgress";
 
-interface Props {
-  showSaveButton?: boolean;
-}
-
-function MultiPageContent({ showSaveButton = true }: Props) {
+function MultiPageContent() {
   const theme = useTheme();
   const { user, readingBook } = useContext(DashboardContext)
   const { bookId } = useParams();
 
   const [book, setBook] = useState<Book | null>(readingBook);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [isLoading, setIsLoading] = useState<Boolean>(true);
   const { pushAlert } = useAlert();
   const [currentPage, setCurrentPage] = useState(0);
   const [selection, setSelection] = useState<Selection | null>(null);
+  const [isTodaysBook, setIsTodaysBook] = useState<Boolean>(false);
 
   if (!bookId) return <Navigate to={RouteEnum.NotFound} replace />
 
@@ -47,6 +44,13 @@ function MultiPageContent({ showSaveButton = true }: Props) {
     } else {
       setIsLoading(false);
     }
+
+    // Check if the book is todays book
+    const fetchIsTodaysBook = async () => {
+      const isTodaysBook = await checkTodaysBook(user, bookId);
+      setIsTodaysBook(isTodaysBook);
+    }
+    fetchIsTodaysBook();
   }, []);
 
   if (isLoading) return <CircularProgress />
@@ -121,7 +125,7 @@ function MultiPageContent({ showSaveButton = true }: Props) {
           {currentPage + 1}/{pages.length}
         </Typography>
       </Box>
-      {showSaveButton && currentPage === pages.length - 1 && (
+      {isTodaysBook && currentPage === pages.length - 1 && (
         <Box sx={{ display: 'flex', justifyContent: 'end', width: '100%' }} mt={4}>
           <Button variant="contained" onClick={handleFinishRead}>
             {Strings.set_finished}

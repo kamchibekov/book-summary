@@ -68,11 +68,11 @@ function App() {
     <StrictMode>
       <CssBaseline />
       <BrowserRouter
-        basename="/book-summary"
         future={{
           v7_startTransition: true,
         }}
-      >
+        basename="/book-summary"
+      > {/* basename="/book-summary" */}
         <ThemeProvider theme={theme}>
 
           <AlertProvider>
