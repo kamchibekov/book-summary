@@ -2,7 +2,7 @@
   "name": "Book Summary",
   "short_name": "book-summary",
   "description": "An app that will suggest a book summary with various functions.",
-  "start_url": "/",
+  "start_url": "/book-summary",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#000000",

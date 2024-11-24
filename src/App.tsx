@@ -71,8 +71,8 @@ function App() {
         future={{
           v7_startTransition: true,
         }}
-        basename="/book-summary"
-      > {/* basename="/book-summary" */}
+      basename="/book-summary"
+      >
         <ThemeProvider theme={theme}>
 
           <AlertProvider>
