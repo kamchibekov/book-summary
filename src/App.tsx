@@ -7,11 +7,12 @@ import Box from '@mui/material/Box';
 import CssBaseline from '@mui/material/CssBaseline';
 import { AlertProvider } from './providers/AlertProvider';
 import useMediaQuery from '@mui/material/useMediaQuery';
-import { BrowserRouter, createBrowserRouter, Route, Routes, RouterProvider } from 'react-router-dom';
+import { BrowserRouter } from 'react-router-dom';
 import { grey } from '@mui/material/colors';
 import { getAuth, User } from "firebase/auth"
 import RegisterPage from "./pages/Register.page"
 import Dashboard from "./pages/Dashboard.page"
+import warmTheme from './hooks/design-colors';
 
 function App() {
   const [user, setUser] = useState<User | null>(null);
@@ -32,49 +33,16 @@ function App() {
 
   const prefersDarkMode = useMediaQuery('(prefers-color-scheme: dark)');
 
-  const theme = React.useMemo(
-    () =>
-      createTheme({
-        palette: {
-          mode: prefersDarkMode ? 'dark' : 'light',
-          ...(prefersDarkMode ? {
-            // palette values for dark mode
-            background: {
-              default: grey[900],
-              paper: grey[800],
-            },
-            // text: {
-            //   primary: '#fff',
-            //   secondary: grey[500],
-            // },
-          } : {
-            // palette values for light mode
-            background: {
-              default: grey[100],
-              paper: '#fff',
-            },
-            // text: {
-            //   primary: grey[900],
-            //   secondary: grey[800],
-            // },
-          }
-          ),
-        },
-      }),
-    [prefersDarkMode],
-  );
-
   return (
     <StrictMode>
-      <CssBaseline />
       <BrowserRouter
         future={{
           v7_startTransition: true,
         }}
-      basename="/book-summary"
+        basename="/book-summary"
       >
-        <ThemeProvider theme={theme}>
-
+        <ThemeProvider theme={warmTheme(prefersDarkMode)}>
+          <CssBaseline />
           <AlertProvider>
             {loading ? (
               <Box

@@ -4,7 +4,6 @@ import Box from '@mui/material/Box';
 import Container from "@mui/material/Container";
 import Header from "../components/Header";
 import Sidebar from "../components/Sidebar";
-import MultiPageContent from "../components/MultiPageContent";
 import { DashboardContextInterface, DashboardContext } from '../contexts'
 import { Book, HighlightInfo } from "../config/types";
 import { User } from "firebase/auth";
@@ -14,6 +13,7 @@ import LibraryPage from "./Library.page";
 import HighlightsPage from "./Highlights.page";
 import BookHighlights from "../components/BookHighlights";
 import NotFoundPage from "./NotFound.page";
+import BookContent from "../components/BookContent";
 
 function DashboardPage({ user }: { user: User }) {
 
@@ -51,7 +51,7 @@ function DashboardPage({ user }: { user: User }) {
               <Route index element={<HighlightsPage />} />
               <Route path={RuoteEnum.BookHighlights} element={<BookHighlights />} />
             </Route>
-            <Route path={RuoteEnum.Book} element={<MultiPageContent />} />
+            <Route path={RuoteEnum.Book} element={<BookContent />} />
             <Route path="*" element={<NotFoundPage />} />
           </Routes>
         </Container>

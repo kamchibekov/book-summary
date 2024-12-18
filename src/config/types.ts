@@ -18,5 +18,15 @@ export interface HighlightInfo {
 }
 
 export interface HighlightText {
+  key?: string;
+  chapter: string;
   text: string;
+  start: number;
+  end: number;
+  color: string;
+}
+
+export interface SelectionWithHighlight {
+  selection: Selection;
+  highlightedText: HighlightText;
 }

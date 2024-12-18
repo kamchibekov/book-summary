@@ -23,6 +23,7 @@ abstract class Strings {
   static readonly highlight_deleted = 'Highlight deleted!';
   static readonly highlight_delete_confirm =
     'Are you sure you want to delete this highlight?';
+  static readonly highlight_saved = 'Highlight saved!';
 
   // Book
   static readonly set_finished = 'Mark as finished';

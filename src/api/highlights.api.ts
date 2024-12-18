@@ -10,6 +10,8 @@ import {
   startAfter,
   set,
   child,
+  onValue,
+  off,
 } from 'firebase/database';
 import { User } from 'firebase/auth';
 import { HighlightInfo, HighlightText, Book } from '../config/types';
@@ -36,7 +38,7 @@ export const saveHighlight = async (
     if (snapshot.exists()) {
       // If the book exists, push only the new highlight text to the existing highlights array
       const highlightsRef = child(bookRef, 'highlights');
-      await push(highlightsRef, { text: highlightText.text });
+      await push(highlightsRef, highlightText);
       console.log('Added new highlight text to existing book.');
     } else {
       // If the book does not exist, create a new book entry and push the first highlight with an auto-generated ID
@@ -123,4 +125,27 @@ export const getHighlightsByBookId = async (user: User, bookId: string) => {
     : null;
 
   return highlightInfo;
+};
+
+// Firebase Subscription for Highlight Changes
+export const subscribeToHighlightChanges = (
+  user: User,
+  bookId: string,
+  setHighlights: React.Dispatch<React.SetStateAction<HighlightText[] | null>>
+) => {
+  const db = getDatabase();
+  const highlightsRef = ref(
+    db,
+    `${Strings.db_highlights}/${user.uid}/${bookId}/highlights`
+  );
+
+  const unsubscribe = onValue(highlightsRef, (snapshot) => {
+    const data: object = snapshot.val();
+    if (data) {
+      // assign key to each highlight
+      setHighlights(Object.entries(data).map(([key, h]) => ({ key, ...h })));
+    }
+  });
+
+  return () => off(highlightsRef, 'value', unsubscribe);
 };
