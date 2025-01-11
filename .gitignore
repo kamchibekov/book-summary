@@ -135,4 +135,3 @@ configs/
 
 # github pages push instructions
 # add /book-summary url in docs/index.html before app.js
-# add /book-summary url in docs/manifest.json before icons

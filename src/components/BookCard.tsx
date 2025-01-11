@@ -40,13 +40,13 @@ const BookCard = ({ book }: BookCardProps) => {
             </Grid>
             <Grid xs={12} md={9} sm={8}>
                 <Box sx={{ p: 1 }}>
-                    <Typography gutterBottom variant="h5" component="div">
+                    <Typography gutterBottom variant="h5">
                         {book.title}
-                        <Typography variant="subtitle1" color="text.secondary" component="div">
-                            by {book.author}
-                        </Typography>
                     </Typography>
-                    <Typography variant="body2" color="text.secondary">
+                    <Typography variant="subtitle1" color="text.secondary" mb={2}>
+                        by {book.author}
+                    </Typography>
+                    <Typography variant="body1" color="text.secondary">
                         {book.description}
                     </Typography>
                 </Box>

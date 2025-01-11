@@ -1,4 +1,18 @@
-import { ref, get, query, limitToFirst, orderByKey, set, endBefore, equalTo, startAfter, startAt, endAt } from 'firebase/database';
+import {
+  ref,
+  get,
+  query,
+  limitToFirst,
+  orderByKey,
+  set,
+  endBefore,
+  equalTo,
+  startAfter,
+  startAt,
+  endAt,
+  onValue,
+  off,
+} from 'firebase/database';
 import { User } from 'firebase/auth';
 import { Book } from '../config/types';
 import { getDatabase } from 'firebase/database';
@@ -8,26 +22,31 @@ export const fetchBook = async (user: User) => {
   const db = getDatabase();
 
   // Get finished book IDs for the user
-  const userFinishedBooksRef = ref(db, `${Strings.db_finished_books}/${user.uid}`);
+  const userFinishedBooksRef = ref(
+    db,
+    `${Strings.db_finished_books}/${user.uid}`
+  );
   const userFinishedBooksSnapshot = await get(userFinishedBooksRef);
-  const currentBookId = userFinishedBooksSnapshot.child('current_book_id').val() || '';
+  const currentBookId =
+    userFinishedBooksSnapshot.child('current_book_id').val() || '';
 
   if (currentBookId) {
     const currentBookQuery = query(
       ref(db, Strings.db_books),
-      orderByKey(),  // Add this line to specify ordering by key
+      orderByKey(), // Add this line to specify ordering by key
       equalTo(currentBookId)
     );
 
     const currentBookSnapshot = await get(currentBookQuery);
-    const [id, currentBookData] = Object.entries(currentBookSnapshot.val())[0] || [];
+    const [id, currentBookData] =
+      Object.entries(currentBookSnapshot.val())[0] || [];
 
     if (currentBookData) {
       // Process the data as needed
       const currentBook = { ...currentBookData, id: id } as Book;
       return currentBook;
     } else {
-      console.log("Error fetching todays book.");
+      console.log('Error fetching todays book.');
       return null;
     }
   }
@@ -41,7 +60,8 @@ export const fetchBook = async (user: User) => {
 
   const firstBookSnapshot = await get(firstBookQuery);
 
-  const [firstBookId, firstBookData] = Object.entries(firstBookSnapshot.val())[0] || [];
+  const [firstBookId, firstBookData] =
+    Object.entries(firstBookSnapshot.val())[0] || [];
 
   if (!firstBookData) {
     console.error('No books available.');
@@ -55,7 +75,6 @@ export const fetchBook = async (user: User) => {
 
   return firstBook;
 };
-
 
 export const setBookFinished = async (user: User, bookId: string) => {
   const db = getDatabase();
@@ -79,25 +98,31 @@ export const setBookFinished = async (user: User, bookId: string) => {
   const nextBook = { ...nextBookData, id: id } as Book;
 
   // Get finished book IDs for the user
-  const userFinishedBooksRef = ref(db, `${Strings.db_finished_books}/${user.uid}`);
+  const userFinishedBooksRef = ref(
+    db,
+    `${Strings.db_finished_books}/${user.uid}`
+  );
 
   // Update the 'current_book_id'
   await set(userFinishedBooksRef, { current_book_id: nextBook.id });
 
-  console.log("new book was fetched:", nextBook)
+  console.log('new book was fetched:', nextBook);
   return nextBook;
 };
-
 
 export const getLibraryBooks = async (user: User) => {
   const db = getDatabase();
 
   // Get finished book IDs for the user
-  const userFinishedBooksRef = ref(db, `${Strings.db_finished_books}/${user.uid}`);
+  const userFinishedBooksRef = ref(
+    db,
+    `${Strings.db_finished_books}/${user.uid}`
+  );
   const userFinishedBooksSnapshot = await get(userFinishedBooksRef);
-  const currentBookId = userFinishedBooksSnapshot.child('current_book_id').val() || null;
+  const currentBookId =
+    userFinishedBooksSnapshot.child('current_book_id').val() || null;
 
-  if (!currentBookId) return []
+  if (!currentBookId) return [];
 
   // If currentBookId is available, query for books
   const allBooksQuery = query(
@@ -109,16 +134,19 @@ export const getLibraryBooks = async (user: User) => {
   const allBooksSnapshot = await get(allBooksQuery);
 
   const allBooks: Record<string, Book> = allBooksSnapshot.val() || {};
-  const orderedBooks: Book[] = Object.entries(allBooks).map(([id, data]) => ({ ...data, id }));
+  const orderedBooks: Book[] = Object.entries(allBooks).map(([id, data]) => ({
+    ...data,
+    id,
+  }));
 
   return orderedBooks;
-}
+};
 
 export const fetchBookById = async (bookId: string) => {
   const db = getDatabase();
   const book = query(
     ref(db, 'books'),
-    orderByKey(),  // Add this line to specify ordering by key
+    orderByKey(), // Add this line to specify ordering by key
     equalTo(bookId)
   );
 
@@ -133,17 +161,42 @@ export const fetchBookById = async (bookId: string) => {
     const fetchedBook = { ...bookData, id: id } as Book;
     return fetchedBook;
   }
-  console.log("Error fetching a book.");
+  console.log('Error fetching a book.');
   return null;
 };
 
-export const checkTodaysBook = async (user: User, bookId: string): Promise<Boolean> => {
+export const checkTodaysBook = async (
+  user: User,
+  bookId: string
+): Promise<Boolean> => {
   const db = getDatabase();
   // Check if the current book is todays book
   const bookQuery = query(
-    ref(db, `${Strings.db_finished_books}/${user.uid}/current_book_id`));
+    ref(db, `${Strings.db_finished_books}/${user.uid}/current_book_id`)
+  );
 
   const bookSnapshot = await get(bookQuery);
 
   return bookSnapshot.val() === bookId;
-}
+};
+
+// Firebase subscription for book fetch
+export const subscribeToBookChanges = (
+  book_id: string,
+  setBook: React.Dispatch<React.SetStateAction<Book | null>>
+) => {
+  const db = getDatabase();
+  const bookRef = ref(db, `${Strings.db_books}/${book_id}`);
+
+  const unsubscribe = onValue(bookRef, (snapshot) => {
+    const data: Book = snapshot.val();
+
+    if (data) {
+      // Process the data as needed
+      const fetchedBook = { ...data, id: book_id } as Book;
+      setBook(fetchedBook);
+    }
+  });
+
+  return () => off(bookRef, 'value', unsubscribe);
+};

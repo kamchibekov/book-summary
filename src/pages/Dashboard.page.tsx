@@ -1,11 +1,11 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { Routes, Route } from "react-router-dom";
 import Box from '@mui/material/Box';
 import Container from "@mui/material/Container";
 import Header from "../components/Header";
 import Sidebar from "../components/Sidebar";
 import { DashboardContextInterface, DashboardContext } from '../contexts'
-import { Book, HighlightInfo } from "../config/types";
+import { Book } from "../config/types";
 import { User } from "firebase/auth";
 import RuoteEnum from "../config/routes";
 import TodaysBook from "../components/TodaysBook";
@@ -20,9 +20,6 @@ function DashboardPage({ user }: { user: User }) {
   // Reading state
   const [readingBook, setReadingBook] = useState<Book | null>(null);
 
-  // Highlight state
-  const [highlightInfo, setHighlightInfo] = useState<HighlightInfo | null>(null);
-
   // Drawer
   const [isSidebarOpen, setIsSidebarOpen] = useState<boolean>(false);
   const drawerWidth = 240;
@@ -31,9 +28,7 @@ function DashboardPage({ user }: { user: User }) {
   const contextValue: DashboardContextInterface = {
     readingBook,
     setReadingBook,
-    user,
-    highlightInfo,
-    setHighlightInfo
+    user
   }
 
   return (

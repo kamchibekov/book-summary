@@ -47,7 +47,8 @@ const warmTheme = (prefersDarkMode: boolean) => {
         fontWeight: 500,
       },
       body1: {
-        fontSize: '1rem',
+        fontSize: '1.125rem',
+        lineHeight: 1.625,
       },
     },
   });

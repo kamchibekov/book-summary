@@ -6,6 +6,7 @@ export interface Book {
   image_url: string;
   raw_text: string;
   summary: string;
+  created_at: object;
 }
 
 export interface HighlightInfo {
@@ -15,6 +16,7 @@ export interface HighlightInfo {
   book_author: string;
   book_image_url: string;
   highlights: HighlightText[];
+  created_at: object;
 }
 
 export interface HighlightText {
@@ -24,9 +26,17 @@ export interface HighlightText {
   start: number;
   end: number;
   color: string;
+  created_at: object;
 }
 
-export interface SelectionWithHighlight {
+export interface CustomSelection {
   selection: Selection;
-  highlightedText: HighlightText;
+  key: string;
+  node: Node;
+}
+
+export enum Color {
+  orange = '#ffa726',
+  green = '#66bb6a',
+  blue = '#2bb6f6',
 }

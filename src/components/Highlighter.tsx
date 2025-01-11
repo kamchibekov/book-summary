@@ -24,8 +24,11 @@ function Highlighter({ chapter, highlights, content }: HighlighterProps) {
   const [currentHighlight, setCurrentHighlight] = useState<HighlightText | null>(null);
   const { pushAlert } = useAlert();
 
-  // Sort highlights to ensure they are rendered in order
-  const sortedHighlights = Object.values(highlights).sort((a, b) => a.start - b.start);
+  // find all highlights in this chapter
+  const highlightsInChapter = highlights.filter(highlight => highlight.chapter === chapter);
+
+  // if there are no highlights in this chapter, return the original text
+  if (highlightsInChapter.length === 0) return content;
 
   const handleDelete = (key?: string) => {
     if (!bookId || !key) return;
@@ -50,45 +53,64 @@ function Highlighter({ chapter, highlights, content }: HighlighterProps) {
     pushAlert('success', 'Highlight copied to clipboard.');
   }
 
+  function resolveHighlights(highlights: HighlightText[]): HighlightText[] {
+    // Sort highlights by start position
+    highlights.sort((a, b) => a.start - b.start);
+
+    const adjusted: HighlightText[] = [];
+
+    for (const highlight of highlights) {
+      if (adjusted.length > 0) {
+        const prev = adjusted[adjusted.length - 1];
+        // If there's a conflict
+        if (highlight.start <= prev.end) {
+          // Adjust the start position of the current highlight
+          highlight.start = prev.end + 1;
+
+          // If start > end after adjustment, narrow the highlight
+          if (highlight.start > highlight.end) {
+            highlight.end = highlight.start;
+          }
+        }
+      }
+      adjusted.push({ ...highlight }); // Create a copy to avoid mutating the original object
+    }
+
+    return adjusted;
+  }
+
   const renderHighlightedText = () => {
-    const parts = [];
+
+    const resolvedHighlights = resolveHighlights(highlightsInChapter);
+
+    const parts: React.ReactNode[] = [];
     let currentIndex = 0;
 
-    for (const sortedHighlight of sortedHighlights) {
-      const { start, end, color } = sortedHighlight;
-      // Skip highlights that are not in the current content
-      if (chapter !== sortedHighlight.chapter) continue;
+    for (const highlight of resolvedHighlights) {
+      const { start, end, color } = highlight;
 
-      // Add non-highlighted text before the current highlight
       if (currentIndex < start) {
         parts.push(content.slice(currentIndex, start));
       }
 
-      // Add highlighted text
       parts.push(
         <mark
-          key={sortedHighlight.key}
-          style={{
-            backgroundColor: color,
-            padding: "0 2px",
-            borderRadius: "2px",
-            cursor: 'pointer'
-          }}
-          onClick={(e: React.MouseEvent<HTMLElement>) => handleOpenPopup(e, sortedHighlight)}
+          key={`${start}-${end}-${color}`}
+          style={{ backgroundColor: color, cursor: 'pointer' }}
+          onClick={(e: React.MouseEvent<HTMLElement>) => handleOpenPopup(e, highlight)}
         >
           {content.slice(start, end)}
         </mark>
       );
 
-      currentIndex = end; // Move the current index to the end of the highlight
+      currentIndex = Math.max(currentIndex, end);
     }
 
-    // Add any remaining non-highlighted text
     if (currentIndex < content.length) {
       parts.push(content.slice(currentIndex));
     }
 
-    return parts;
+    return <>{parts}</>; // Wrap in a React Fragment
   };
 
   return (
@@ -99,6 +121,7 @@ function Highlighter({ chapter, highlights, content }: HighlighterProps) {
         anchorEl={anchorEl}
         onClose={handleClosePopup}
         anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+        aria-hidden={false}
       >
         <ButtonGroup variant="contained" aria-label="Highlight options">
           <Button

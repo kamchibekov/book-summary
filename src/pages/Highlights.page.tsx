@@ -4,64 +4,38 @@ import Card from "@mui/material/Card";
 import CardMedia from "@mui/material/CardMedia";
 import CardContent from "@mui/material/CardContent";
 import Typography from "@mui/material/Typography";
-import Button from "@mui/material/Button";
 import CardActionArea from "@mui/material/CardActionArea";
 import { HighlightInfo } from "../config/types";
-import { getStorage, ref, getDownloadURL } from 'firebase/storage';
-import { getHighlights } from "../api/highlights.api";
+import { subscribeToBookHighlightsInfoChanges } from "../api/highlights.api";
 import { DashboardContext } from "../contexts";
 import Strings from "../config/strings";
 import { useNavigate } from "react-router-dom";
 import RuoteEnum from "../config/routes";
-import CircularProgress from "@mui/material/CircularProgress";
 
 const HighlightsPage = () => {
 
   const navigate = useNavigate();
+  const { user } = useContext(DashboardContext);
 
-  const { user, setHighlightInfo } = useContext(DashboardContext)
   const [books, setBooks] = useState<HighlightInfo[]>([]);
-  const [currentKey, setCurrentKey] = useState<null | string>(null);
-  const [isLastPage, setIsLastPage] = useState<string | boolean | undefined>(true);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
 
   // get books
   useEffect(() => {
-    const storage = getStorage();
+    const unsubscribe = subscribeToBookHighlightsInfoChanges(user, setBooks);
 
-    const fetchBooksWithHighlightsAndImages = async () => {
-      const { booksWithHighlights, isLastPage } = await getHighlights(user, currentKey);
+    // Cleanup subscription on unmount
+    return () => unsubscribe();
 
-      // booksWithHighlightsAndImages is an array of objects with the book_image_url property
-      const booksWithHighlightsAndImages = await Promise.all(
-        booksWithHighlights.map(async (bookWithHighlights) => {
-          const imageRef = ref(storage, bookWithHighlights.book_image_url);
-          const url = await getDownloadURL(imageRef);
-          return { ...bookWithHighlights, book_image_url: url };
-        })
-      );
-
-      // Set last page or last highlight
-      setIsLastPage(isLastPage);
-
-      setBooks(booksWithHighlightsAndImages);
-      setIsLoading(false);
-
-      console.log("highlights fetched", booksWithHighlightsAndImages, isLastPage)
-    }
-    setIsLoading(true);
-    fetchBooksWithHighlightsAndImages();
+    // Change state when user changes
   }, [user])
 
-  const handleNextClick = () => {
-    if (typeof isLastPage === 'string')
-      setCurrentKey(isLastPage);
-  };
-
   const handleHighlighInfoClick = (highlight: HighlightInfo) => {
-    setHighlightInfo(highlight)
     navigate(RuoteEnum.BookHighlights.replace(':bookId', highlight.book_id))
   }
+
+  if (!books) return <React.Fragment>
+    {Strings.no_highlights}
+  </React.Fragment>
 
   return (
     <React.Fragment>
@@ -90,17 +64,7 @@ const HighlightsPage = () => {
             </Card>
           </Grid>
         ))}
-        {isLoading && <CircularProgress />}
-        {!isLoading && books.length === 0 && <Typography variant="h6" align="center" color="text.secondary">{Strings.no_highlights}</Typography>}
       </Grid>
-
-      {isLastPage !== true && (
-        <Grid xs={12} sx={{ justifyContent: "space-evenly" }}>
-          <Button variant="contained" onClick={handleNextClick}>
-            Load more
-          </Button>
-        </Grid>
-      )}
     </React.Fragment>
   );
 };

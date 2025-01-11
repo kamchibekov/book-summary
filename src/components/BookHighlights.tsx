@@ -7,76 +7,48 @@ import CardActions from "@mui/material/CardActions";
 import { HighlightInfo, HighlightText } from "../config/types";
 import { DashboardContext } from "../contexts";
 import IconButton from "@mui/material/IconButton";
-import { deleteHighlight } from "../api/highlights.api";
+import { deleteHighlight, subscribeToHighlightInfo } from "../api/highlights.api";
 import Box from "@mui/material/Box";
 import CopyAllTwoToneIcon from "@mui/icons-material/CopyAllTwoTone";
 import { useAlert } from "../providers/AlertProvider";
 import Close from "@mui/icons-material/Close";
 import Strings from "../config/strings";
 import { useParams } from "react-router-dom";
-import { getHighlightsByBookId } from "../api/highlights.api";
 import { Navigate } from "react-router-dom";
 import RouteEnum from "../config/routes";
-import { CircularProgress } from "@mui/material";
-import { getStorage, ref, getDownloadURL } from 'firebase/storage';
+import Button from "@mui/material/Button";
+import { useNavigate } from "react-router-dom";
 
-function normalizeHighlights(highlightInfo: HighlightInfo | null) {
-  if (!highlightInfo) return []
-  return Object.entries(highlightInfo.highlights).map(([id, highlight]) => ([id, highlight.text]))
+function normalizeHighlights(highlights: HighlightText[]): [string, string][] {
+  return Object.entries(highlights).map(([id, highlight]) => ([id, highlight.text]))
 }
 
 function BookHighlights() {
 
-  const { highlightInfo, user, setHighlightInfo } = useContext(DashboardContext)
+  const { user } = useContext(DashboardContext)
   const { pushAlert } = useAlert();
   const { bookId } = useParams<{ bookId: string }>();
-  const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [imageUrl, setImageUrl] = useState(highlightInfo?.book_image_url || '');
-  const [highlights, setHighlights] = useState<string[][]>(normalizeHighlights(highlightInfo));
+  const [highlightInfo, setHighlightInfo] = useState<HighlightInfo | null>(null);
+  const navigate = useNavigate();
 
   if (!bookId) return <Navigate to={RouteEnum.NotFound} replace />
 
   useEffect(() => {
-    const fetchHighlightInfo = async () => {
-      const fetchedHighlightInfo = await getHighlightsByBookId(user, bookId);
-      if (fetchedHighlightInfo) {
-        setHighlightInfo(fetchedHighlightInfo);
-        setHighlights(normalizeHighlights(fetchedHighlightInfo));
+    const unsubscribe = subscribeToHighlightInfo(user, bookId, setHighlightInfo);
 
-        // load book image
-        const storage = getStorage()
-        const imageRef = ref(storage, fetchedHighlightInfo.book_image_url);
+    // Cleanup subscription on unmount
+    return () => unsubscribe();
 
-        getDownloadURL(imageRef)
-          .then((url) => {
-            setImageUrl(url);
-          })
-          .catch((error) => {
-            console.error(error);
-          });
-      }
+    // Change state when user changes
+  }, [user]);
 
-      setIsLoading(false);
-      console.log("Highlights fetched")
-    };
-    if (!highlightInfo) {
-      fetchHighlightInfo();
-      console.log("Fetching highlights")
-    } else {
-      setIsLoading(false);
-    }
-  }, []);
-
-  if (isLoading) return <CircularProgress />
-
-  if (!highlightInfo) return <Navigate to={RouteEnum.NotFound} replace />
+  if (!highlightInfo) return '' //<Navigate to={RouteEnum.NotFound} replace />
 
 
   const handleDelete = (id: string) => {
     if (window.confirm(Strings.highlight_delete_confirm)) {
       deleteHighlight(user, highlightInfo.book_id, id);
       // splice highlights array
-      setHighlights(prevHighlights => prevHighlights.filter(([prevId]) => prevId !== id));
       pushAlert('success', Strings.highlight_deleted);
     }
   }
@@ -84,6 +56,11 @@ function BookHighlights() {
   const handleCopy = (text: string) => {
     navigator.clipboard.writeText(text);
     pushAlert('success', Strings.highlight_copied);
+  }
+
+  const handleViewBlink = () => {
+    // open a new tab with the blink link
+    navigate(RouteEnum.Book.replace(':bookId', highlightInfo.book_id))
   }
 
   return (
@@ -94,13 +71,13 @@ function BookHighlights() {
         <Grid xs={12} sm={4} md={3}>
           <Box display="flex" flexDirection="column" alignItems="center">
             <img
-              src={imageUrl}
+              src={highlightInfo.book_image_url}
               alt={highlightInfo.book_title}
               style={{ width: "100%", borderRadius: 8, boxShadow: "0px 4px 12px rgba(0, 0, 0, 0.1)" }}
             />
-            {/* <Button variant="contained" color="secondary" sx={{ mt: 2 }}>
+            <Button variant="contained" sx={{ mt: 2 }} onClick={handleViewBlink}>
               View Blink
-            </Button> */}
+            </Button>
           </Box>
         </Grid>
 
@@ -114,13 +91,13 @@ function BookHighlights() {
               by {highlightInfo.book_author}
             </Typography>
             <Typography variant="h6" color="text.secondary" mt={1}>
-              Your Highlights
+              Your Highlights ({Object.keys(highlightInfo.highlights).length})
             </Typography>
           </Box>
 
           {/* Highlights List */}
           <Box>
-            {highlights.map(([id, text]) => (
+            {normalizeHighlights(highlightInfo.highlights).map(([id, text]) => (
               <Grid key={id} mb={2}>
                 <Card sx={{ display: "flex", alignItems: "center" }}>
                   <CardContent sx={{ flexGrow: 1 }}>

@@ -1,15 +1,15 @@
 import React, { useContext, useEffect, useState } from 'react';
 import { DashboardContext } from '../contexts';
-import { Book, HighlightInfo, HighlightText, SelectionWithHighlight } from '../config/types';
+import { Book, HighlightText, CustomSelection } from '../config/types';
 import { useAlert } from '../providers/AlertProvider';
 import { useParams, Navigate } from 'react-router-dom';
 import RouteEnum from '../config/routes';
 import CircularProgress from '@mui/material/CircularProgress';
 import Button from '@mui/material/Button';
 import Strings from '../config/strings';
-import { fetchBookById, setBookFinished, checkTodaysBook } from '../api/books.api';
+import { setBookFinished, checkTodaysBook, subscribeToBookChanges } from '../api/books.api';
 import Box from '@mui/material/Box';
-import { saveHighlight, getHighlightsByBookId, subscribeToHighlightChanges } from "../api/highlights.api";
+import { saveHighlight, subscribeToHighlightChanges } from "../api/highlights.api";
 import TextSelection from "./TextSelection";
 import Highlighter from "./Highlighter";
 
@@ -18,28 +18,22 @@ function BookContent() {
   const { bookId } = useParams();
 
   const [book, setBook] = useState<Book | null>(readingBook);
-  const [isLoading, setIsLoading] = useState<Boolean>(true);
   const { pushAlert } = useAlert();
   const [isTodaysBook, setIsTodaysBook] = useState<Boolean>(false);
-  const [selection, setSelection] = useState<SelectionWithHighlight | null>(null);
+  const [selection, setSelection] = useState<CustomSelection | null>(null);
   const [highlights, setHighlights] = useState<HighlightText[] | null>(null);
 
   if (!bookId) return <Navigate to={RouteEnum.NotFound} replace />
 
   useEffect(() => {
-    const fetchBook = async () => {
-      const fetchedBook = await fetchBookById(bookId);
-      setBook(fetchedBook);
-      setIsLoading(false);
-    };
-    if (!book) {
-      setIsLoading(true);
-      fetchBook();
-    } else {
-      setIsLoading(false);
-    }
+    if (!readingBook) {
+      const unsubscribe = subscribeToBookChanges(bookId, setBook);
+      console.log("Subscribed to book changes")
 
-  }, []);
+      // Cleanup subscription on unmount
+      return () => unsubscribe();
+    }
+  }, [user]);
 
   useEffect(() => {
     // Check if the book is todays book
@@ -51,12 +45,6 @@ function BookContent() {
   }, []);
 
   useEffect(() => {
-    // const fetchHighlights = async () => {
-    //   const highlightInfo = await getHighlightsByBookId(user, bookId);
-    //   setHighlights(highlightInfo?.highlights ?? null);
-    // }
-    // fetchHighlights();
-
     const unsubscribe = subscribeToHighlightChanges(user, bookId, setHighlights);
 
     // Cleanup subscription on unmount
@@ -64,38 +52,29 @@ function BookContent() {
 
   }, []);
 
-  if (isLoading) return <CircularProgress />
-
-  if (book === null) return <Navigate to={RouteEnum.NotFound} replace />
+  if (book === null) return '' //<Navigate to={RouteEnum.NotFound} replace />
 
   const data = JSON.parse(book['summary'])
 
-  const handleMouseUp = (chapter: string, text: string) => {
+  // Handle selected text on mouse up
+  const handleMouseUp = (e: React.MouseEvent<HTMLParagraphElement, MouseEvent>, chapter: string) => {
     const selection = window.getSelection();
-    const selected = selection?.toString().trim() || "";
 
-    // Normalize strings by removing whitespace and non-printable characters
-    const normalizedText = text.replace(/\s+/g, ' ').trim();
-    const normalizedSelected = selected.replace(/\s+/g, ' ').trim();
-
-    if (selection && selected && normalizedText.includes(normalizedSelected)) {
-      const start = normalizedText.indexOf(normalizedSelected);
-      const end = start + normalizedSelected.length;
-
-      const selectionWithHighlight: SelectionWithHighlight = {
-        selection,
-        highlightedText: {
-          text: selected,
-          start,
-          end,
-          color: 'rgb(254 220 134/1)',
-          chapter
-        }
-      }
-      setSelection(selectionWithHighlight);
-    } else {
+    if (!selection?.toString().trim()) {
       setSelection(null);
+      return;
+    };
+
+    const { anchorNode, focusNode } = selection;
+
+    if (!e.currentTarget.contains(anchorNode) || !e.currentTarget.contains(focusNode)) return;
+
+    const customSelection: CustomSelection = {
+      selection,
+      key: chapter,
+      node: e.currentTarget,
     }
+    setSelection(customSelection);
   };
 
   const handleSaveHighlight = (highlightedText: HighlightText) => {
@@ -115,9 +94,9 @@ function BookContent() {
       {Object.entries(data).map(([key, content]) => (
         <div key={key}>
           <h2>{key}</h2>
-          <p onMouseUp={() => handleMouseUp(key, content as string)}>
+          <div onMouseUp={(e) => handleMouseUp(e, key)}>
             <Highlighter highlights={highlights} chapter={key} content={content as string} />
-          </p>
+          </div>
         </div>
       ))}
       {isTodaysBook && (
@@ -128,7 +107,7 @@ function BookContent() {
         </Box>)}
       {selection && (
         <TextSelection
-          selection={selection}
+          customSelection={selection}
           callback={handleSaveHighlight}
         />
       )}

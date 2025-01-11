@@ -4,18 +4,16 @@ import {
   get,
   remove,
   getDatabase,
-  query,
-  limitToFirst,
-  orderByKey,
-  startAfter,
   set,
   child,
   onValue,
   off,
+  serverTimestamp,
 } from 'firebase/database';
 import { User } from 'firebase/auth';
 import { HighlightInfo, HighlightText, Book } from '../config/types';
 import Strings from '../config/strings';
+import { getCachedImageUrl } from './storage.api';
 
 // save highlight
 export const saveHighlight = async (
@@ -48,54 +46,18 @@ export const saveHighlight = async (
         book_author: readingBook.author,
         book_image_url: readingBook.image_url,
         highlights: {}, // Initialize highlights as an object for pushing
+        created_at: serverTimestamp(),
       };
       await set(bookRef, newBookData);
 
       // Now push the first highlight
       const highlightsRef = child(bookRef, 'highlights');
-      await push(highlightsRef, { text: highlightText.text });
+      await push(highlightsRef, highlightText);
       console.log('Created new book entry with initial highlight.');
     }
   } catch (error) {
     console.error('Error saving highlight:', error);
   }
-};
-
-// get all user highlights with pagination
-export const getHighlights = async (user: User, key: string | null) => {
-  let isLastPage: string | boolean | undefined = false;
-
-  const PAGE_SIZE = 50; // This needs to be set through settings. Example: Settings -> Highlights -> per page = 50
-
-  // Initial page load
-  const db = getDatabase();
-  const highlightsRef = ref(db, `${Strings.db_highlights}/${user.uid}`);
-  const highlightSnapshot =
-    key === null
-      ? await get(query(highlightsRef, limitToFirst(PAGE_SIZE)))
-      : await get(
-          query(
-            highlightsRef,
-            orderByKey(),
-            startAfter(key),
-            limitToFirst(PAGE_SIZE)
-          )
-        );
-
-  const highlightsData: Record<string, HighlightInfo> =
-    highlightSnapshot.val() || {};
-
-  const booksWithHighlights: HighlightInfo[] = Object.entries(
-    highlightsData
-  ).map(([id, data]) => ({ ...data, id }));
-
-  // Check if this is the last page
-  isLastPage =
-    booksWithHighlights.length < PAGE_SIZE
-      ? true
-      : booksWithHighlights[booksWithHighlights.length - 1].id;
-
-  return { booksWithHighlights, isLastPage };
 };
 
 // delete highlight
@@ -109,25 +71,7 @@ export const deleteHighlight = (user: User, bookId: string, id: string) => {
   remove(highlightsRef);
 };
 
-// get book highlights by id
-export const getHighlightsByBookId = async (user: User, bookId: string) => {
-  const db = getDatabase();
-  const highlightsRef = ref(
-    db,
-    `${Strings.db_highlights}/${user.uid}/${bookId}`
-  );
-  const highlightSnapshot = await get(highlightsRef);
-  const highlightsData: Record<string, HighlightInfo> =
-    highlightSnapshot.val() || {};
-
-  const highlightInfo: HighlightInfo | null = highlightsData
-    ? ({ ...highlightsData, id: bookId } as HighlightInfo)
-    : null;
-
-  return highlightInfo;
-};
-
-// Firebase Subscription for Highlight Changes
+// Firebase subscription for Highlight Changes
 export const subscribeToHighlightChanges = (
   user: User,
   bookId: string,
@@ -144,6 +88,56 @@ export const subscribeToHighlightChanges = (
     if (data) {
       // assign key to each highlight
       setHighlights(Object.entries(data).map(([key, h]) => ({ key, ...h })));
+    } else {
+      setHighlights(null);
+    }
+  });
+
+  return () => off(highlightsRef, 'value', unsubscribe);
+};
+
+// Firebase subscription for book highlightsInfo changes
+export const subscribeToBookHighlightsInfoChanges = (
+  user: User,
+  setBooks: React.Dispatch<React.SetStateAction<HighlightInfo[]>>
+) => {
+  const db = getDatabase();
+  const highlightsRef = ref(db, `${Strings.db_highlights}/${user.uid}`);
+
+  const unsubscribe = onValue(highlightsRef, (snapshot) => {
+    const data: HighlightInfo[] | null = snapshot.val();
+    if (data) {
+      const promises = Object.entries(data).map(async ([key, h]) => {
+        const imgUrl = await getCachedImageUrl(h.book_image_url);
+        return { key, ...h, book_image_url: imgUrl };
+      });
+
+      Promise.all(promises).then((books) => {
+        setBooks(books);
+      });
+    }
+  });
+
+  return () => off(highlightsRef, 'value', unsubscribe);
+};
+
+// Firebase subscription for fetching single book highlight info
+export const subscribeToHighlightInfo = (
+  user: User,
+  bookId: string,
+  setHighlightInfo: React.Dispatch<React.SetStateAction<HighlightInfo | null>>
+) => {
+  const db = getDatabase();
+  const highlightsRef = ref(
+    db,
+    `${Strings.db_highlights}/${user.uid}/${bookId}`
+  );
+
+  const unsubscribe = onValue(highlightsRef, async (snapshot) => {
+    const data: HighlightInfo = snapshot.val();
+    if (data) {
+      const imgUrl = await getCachedImageUrl(data.book_image_url);
+      setHighlightInfo({ ...data, book_image_url: imgUrl });
     }
   });
 
