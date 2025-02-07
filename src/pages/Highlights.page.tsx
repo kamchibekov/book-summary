@@ -1,5 +1,5 @@
 import React, { useContext, useState, useEffect } from "react";
-import Grid from "@mui/material/Unstable_Grid2/Grid2";
+import Grid from "@mui/material/Grid2";
 import Card from "@mui/material/Card";
 import CardMedia from "@mui/material/CardMedia";
 import CardContent from "@mui/material/CardContent";
@@ -39,9 +39,13 @@ const HighlightsPage = () => {
 
   return (
     <React.Fragment>
-      <Grid container spacing={2} mt={2}>
+      <Grid container spacing={2} mt={2} mb={2}>
         {books.map((book) => (
-          <Grid key={book.book_id} md={2} sx={{ cursor: "pointer" }} onClick={() => handleHighlighInfoClick(book)}>
+          <Grid 
+            key={book.book_id} 
+            size={{ md: 2 }}
+            sx={{ cursor: "pointer" }} 
+            onClick={() => handleHighlighInfoClick(book)}>
             <Card>
               <CardActionArea>
                 <CardMedia

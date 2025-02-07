@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useState } from "react";
-import Grid from "@mui/material/Unstable_Grid2/Grid2";
+import Grid from "@mui/material/Grid2";
 import Card from "@mui/material/Card";
 import CardContent from "@mui/material/CardContent";
 import Typography from "@mui/material/Typography";
@@ -68,7 +68,7 @@ function BookHighlights() {
       <Grid container spacing={2} mt={2}>
 
         {/* Book Cover and Information */}
-        <Grid xs={12} sm={4} md={3}>
+        <Grid size={{ xs: 12, md: 3, sm: 4 }}>
           <Box display="flex" flexDirection="column" alignItems="center">
             <img
               src={highlightInfo.book_image_url}
@@ -81,7 +81,7 @@ function BookHighlights() {
           </Box>
         </Grid>
 
-        <Grid xs={12} sm={8} md={9}>
+        <Grid size={{ xs: 12, md: 9, sm: 8 }}>
           {/* Book Title, Author, and Highlights Count */}
           <Box sx={{ p: 1 }}>
             <Typography variant="h5" component="div">

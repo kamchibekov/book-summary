@@ -4,7 +4,6 @@ import { Book, HighlightText, CustomSelection } from '../config/types';
 import { useAlert } from '../providers/AlertProvider';
 import { useParams, Navigate } from 'react-router-dom';
 import RouteEnum from '../config/routes';
-import CircularProgress from '@mui/material/CircularProgress';
 import Button from '@mui/material/Button';
 import Strings from '../config/strings';
 import { setBookFinished, checkTodaysBook, subscribeToBookChanges } from '../api/books.api';
@@ -12,6 +11,7 @@ import Box from '@mui/material/Box';
 import { saveHighlight, subscribeToHighlightChanges } from "../api/highlights.api";
 import TextSelection from "./TextSelection";
 import Highlighter from "./Highlighter";
+import Typography from '@mui/material/Typography';
 
 function BookContent() {
   const { user, readingBook } = useContext(DashboardContext)
@@ -89,11 +89,11 @@ function BookContent() {
   }
 
   return (
-    <div>
-      <h1>{book.title}</h1>
+    <>
+      <Typography variant="h4" gutterBottom>{book.title}</Typography>
       {Object.entries(data).map(([key, content]) => (
         <div key={key}>
-          <h2>{key}</h2>
+          <Typography variant="h6" gutterBottom mt={2}>{key}</Typography>
           <div onMouseUp={(e) => handleMouseUp(e, key)}>
             <Highlighter highlights={highlights} chapter={key} content={content as string} />
           </div>
@@ -112,7 +112,7 @@ function BookContent() {
         />
       )}
       <br />
-    </div>
+    </>
   );
 }
 

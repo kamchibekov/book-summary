@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 import Typography from '@mui/material/Typography';
 import Button from '@mui/material/Button';
 import Box from '@mui/material/Box';
-import Grid from '@mui/material/Unstable_Grid2';
+import Grid from '@mui/material/Grid2';
 import { DashboardContext } from "../contexts";
 import { Book } from "../config/types";
 import { getStorage, ref, getDownloadURL } from 'firebase/storage';
@@ -35,15 +35,15 @@ const BookCard = ({ book }: BookCardProps) => {
 
     return (
         <Grid container spacing={2} mt={2}>
-            <Grid xs={12} md={3} sm={4}>
+            <Grid size={{ xs: 12, md: 3, sm: 4 }}>
                 <img src={imageUrl} alt={book.title} />
             </Grid>
-            <Grid xs={12} md={9} sm={8}>
-                <Box sx={{ p: 1 }}>
-                    <Typography gutterBottom variant="h5">
+            <Grid size={{ xs: 12, md: 9, sm: 8 }}>
+                <Box>
+                    <Typography gutterBottom variant="h4">
                         {book.title}
                     </Typography>
-                    <Typography variant="subtitle1" color="text.secondary" mb={2}>
+                    <Typography variant="h6" color="text.secondary" mb={2}>
                         by {book.author}
                     </Typography>
                     <Typography variant="body1" color="text.secondary">
@@ -56,7 +56,7 @@ const BookCard = ({ book }: BookCardProps) => {
                         onClick={() => setReadingBook(book)}
                         component={Link}
                         to={RuoteEnum.Book.replace(':bookId', book.id)}>
-                        {book.id === readingBook?.id ? "Continue reading" : "Read"}
+                        {book.id === readingBook?.id ? "Continue reading" : "Read Now"}
                     </Button>
                 </Box>
             </Grid>

@@ -36,21 +36,6 @@ const warmTheme = (prefersDarkMode: boolean) => {
             },
           }),
     },
-    typography: {
-      fontFamily: "'Roboto', sans-serif", // Roboto font
-      h1: {
-        fontSize: '2rem',
-        fontWeight: 700,
-      },
-      h2: {
-        fontSize: '1.5rem',
-        fontWeight: 500,
-      },
-      body1: {
-        fontSize: '1.125rem',
-        lineHeight: 1.625,
-      },
-    },
   });
 };
 export default warmTheme;

@@ -36,9 +36,6 @@ function App() {
   return (
     <StrictMode>
       <BrowserRouter
-        future={{
-          v7_startTransition: true,
-        }}
         basename="/book-summary"
       >
         <ThemeProvider theme={warmTheme(prefersDarkMode)}>

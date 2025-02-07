@@ -132,6 +132,8 @@ dist
 .DS_Store
 
 configs/
+.vscode/
+.yarn
 
 # github pages push instructions
 # add /book-summary url in docs/index.html before app.js

@@ -7,6 +7,7 @@ import Button from '@mui/material/Button';
 import Popover from '@mui/material/Popover';
 import ButtonGroup from '@mui/material/ButtonGroup';
 import { useAlert } from '../providers/AlertProvider';
+import Typography from '@mui/material/Typography';
 
 interface HighlighterProps {
   highlights: HighlightText[] | null;
@@ -110,7 +111,7 @@ function Highlighter({ chapter, highlights, content }: HighlighterProps) {
       parts.push(content.slice(currentIndex));
     }
 
-    return <>{parts}</>; // Wrap in a React Fragment
+    return <Typography variant="body1">{parts}</Typography>; // Wrap in a React Fragment
   };
 
   return (
